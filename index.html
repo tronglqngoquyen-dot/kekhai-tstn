@@ -269,7 +269,7 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
 
 const APP = {
   name: 'Kê khai TSTN',
-  version: '1.2.0',
+  version: '1.2.1',
   build: '2026-11-22',
   author: 'Lê Quang Trọng',
   place: 'đảo Phú Quý',
@@ -799,7 +799,7 @@ const PT2CM = 2.54 / 72;
 
 function buildDeclDoc(decl, prev, settings = {}) {
   const B = []; const lanDau = decl.phuongThuc === 'lan_dau';
-  const line = (label, val, ind = 0.5, o = {}) => B.push(P([R(label + ': '), R(blank(val) ? (o.empty ?? KHONG) : String(val))], { indent: ind }));
+  const line = (label, val, ind = 0, o = {}) => B.push(P([R(label + ': '), R(blank(val) ? (o.empty ?? KHONG) : String(val))]));
   // Đầu trang
   const coLines = (decl.tenCoQuanDauTrang || 'TÊN CƠ QUAN, ĐƠN VỊ').toUpperCase().split(/\n/).map(x => x.trim()).filter(Boolean);
   const dang = decl.quocHieu === 'dang';
@@ -813,47 +813,50 @@ function buildDeclDoc(decl, prev, settings = {}) {
     ? [P([R(DANG, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), { t: 'hr', w: textWidthPt(DANG, HS, true) * PT2CM, size: HS }]
     : [P([R(QH, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), P([R(TN, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), { t: 'hr', w: textWidthPt(TN, HS, true) * PT2CM, size: HS }];
   B.push({ t: 'table', border: false, cm: [7.2, 10.4], ind: -0.8, widths: [41, 59], rows: [[leftCell, rightCell]] });
-  const kyTxt = decl.phuongThuc === 'hang_nam' ? 'KÊ KHAI HẰNG NĂM ' + decl.nam : PHUONG_THUC[decl.phuongThuc];
-  B.push(P([R('BẢN KÊ KHAI TÀI SẢN, THU NHẬP', { b: true })], { align: 'center', before: 24, after: 0, line: 1.15, size: 14 }));
-  B.push(P([R(kyTxt, { b: true })], { align: 'center', before: 0, after: 0, line: 1.15, size: 14 }));
-  const chotTxt = `(Ngày chốt thông tin, dữ liệu về tài sản, thu nhập: ${fmtDate(decl.ngayChot) || '..../..../........'})`;
-  B.push(P([R(chotTxt, { i: true })], { align: 'center', before: 0, after: 12, line: 1.15, size: 14 }));
-  B.push({ t: 'hr', w: textWidthPt(chotTxt, 14, false, true) / 3 * PT2CM, size: 14, rel: 'margin' });
+  // Tiêu đề đúng mẫu: "BẢN KÊ KHAI TÀI SẢN, THU NHẬP…(1)" — điền phương thức vào chỗ "…"; dòng "(Ngày … tháng … năm …)(2)" ghi ngày chốt
+  const ptTxt = { lan_dau: 'LẦN ĐẦU', hang_nam: 'HẰNG NĂM', bo_sung: 'BỔ SUNG', can_bo: 'PHỤC VỤ CÔNG TÁC CÁN BỘ' }[decl.phuongThuc] || '';
+  B.push(P([R('BẢN KÊ KHAI TÀI SẢN, THU NHẬP ' + ptTxt, { b: true })], { align: 'center', before: 24, after: 0, line: 1.15, size: 14 }));
+  const dc = decl.ngayChot ? new Date(decl.ngayChot + 'T00:00:00') : null;
+  B.push(P([R(dc ? `(Ngày ${pad(dc.getDate())} tháng ${pad(dc.getMonth() + 1)} năm ${dc.getFullYear()})` : '(Ngày....... tháng ...... năm ......)', { b: true })], { align: 'center', before: 0, after: 12, line: 1.15, size: 14 }));
   const bodyStart = B.length;
+  const S3 = '   '; // khoảng cách giữa các trường trên cùng một dòng (mẫu dùng dòng chấm)
+  const ml = (txt, o = {}) => B.push(Object.assign(P(txt, o), { multi: true })); // dòng nhiều trường: căn trái
+  const H = txt => B.push(P(txt)); // đề mục chữ thường như mẫu
+  const val = v => blank(v) ? KHONG : String(v);
 
   // I. THÔNG TIN CHUNG
   B.push(P([R('I. THÔNG TIN CHUNG', { b: true })]));
-  B.push(P([R('1. Người kê khai tài sản, thu nhập', { b: true })]));
+  H('1. Người kê khai tài sản, thu nhập');
   const p = decl.nguoi;
-  B.push(P([R('- Họ và tên: ' + dots(p.hoTen)), R('\tNgày, tháng, năm sinh: ' + fmtDate(p.ngaySinh))], { indent: 0.5 }));
+  ml(`- Họ và tên: ${dots(p.hoTen)}\tNgày, tháng, năm sinh: ${fmtDate(p.ngaySinh)}`);
   line('- Quê quán', p.queQuan); line('- Nơi thường trú', p.noiThuongTru); line('- Nơi ở hiện nay', p.noiOHienNay);
-  B.push(P([R('- Chức vụ/chức danh: ' + dots(p.chucVu)), R('\tHệ số phụ cấp chức vụ: ' + (blank(p.heSoPhuCap) ? 'Không' : p.heSoPhuCap))], { indent: 0.5 }));
+  ml(`- Chức vụ/chức danh: ${dots(p.chucVu)}\tHệ số phụ cấp chức vụ: ${blank(p.heSoPhuCap) ? 'Không' : p.heSoPhuCap}`);
   line('- Cơ quan, đơn vị công tác', p.coQuan);
-  B.push(P(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(p.soDinhDanh)}; ngày cấp: ${fmtDate(p.ngayCap)}; nơi cấp: ${dots(p.noiCap)}`, { indent: 0.5 }));
+  ml(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(p.soDinhDanh)}${S3}ngày cấp: ${fmtDate(p.ngayCap)}${S3}nơi cấp: ${dots(p.noiCap)}`);
   line('- Số điện thoại', p.soDienThoai);
 
-  B.push(P([R('2. Vợ hoặc chồng của người kê khai tài sản, thu nhập', { b: true })]));
-  if (!decl.coVoChong) B.push(P(KHONG, { indent: 0.5 }));
+  H('2. Vợ hoặc chồng của người kê khai tài sản, thu nhập');
+  if (!decl.coVoChong) B.push(P(KHONG));
   else {
     const v = decl.voChong;
-    B.push(P([R('- Họ và tên: ' + dots(v.hoTen)), R('\tNgày, tháng, năm sinh: ' + fmtDate(v.ngaySinh))], { indent: 0.5 }));
+    ml(`- Họ và tên: ${dots(v.hoTen)}\tNgày, tháng, năm sinh: ${fmtDate(v.ngaySinh)}`);
     line('- Quê quán', v.queQuan); line('- Nơi thường trú', v.noiThuongTru); line('- Nơi ở hiện nay', v.noiOHienNay);
-    B.push(P([R('- Chức vụ/chức danh/nghề nghiệp, công việc đang làm: ' + dots(v.ngheNghiep)), R('\tHệ số phụ cấp chức vụ (nếu có): ' + (blank(v.heSoPhuCap) ? 'Không' : v.heSoPhuCap))], { indent: 0.5 }));
+    ml(`- Chức vụ/chức danh/nghề nghiệp, công việc đang làm: ${dots(v.ngheNghiep)}${S3}Hệ số phụ cấp chức vụ (nếu có): ${blank(v.heSoPhuCap) ? 'Không' : v.heSoPhuCap}`);
     line('- Cơ quan, đơn vị công tác, nơi làm việc', v.noiLamViec);
-    B.push(P(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(v.soDinhDanh)}; ngày cấp: ${fmtDate(v.ngayCap)}; nơi cấp: ${dots(v.noiCap)}`, { indent: 0.5 }));
+    ml(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(v.soDinhDanh)}${S3}ngày cấp: ${fmtDate(v.ngayCap)}${S3}nơi cấp: ${dots(v.noiCap)}`);
     line('- Số điện thoại', v.soDienThoai);
   }
-  B.push(P([R('3. Con chưa thành niên (con đẻ, con nuôi theo quy định của pháp luật)', { b: true })]));
-  if (!decl.con.length) B.push(P(KHONG, { indent: 0.5 }));
+  H('3. Con chưa thành niên (con đẻ, con nuôi theo quy định của pháp luật)');
+  if (!decl.con.length) B.push(P(KHONG));
   decl.con.forEach((c, i) => {
-    B.push(P([R(`3.${i + 1}. Con thứ ${ordName(i)}:`, { i: true })], { indent: 0.25 }));
-    B.push(P([R('- Họ và tên: ' + dots(c.hoTen)), R('\tNgày, tháng, năm sinh: ' + fmtDate(c.ngaySinh))], { indent: 0.5 }));
+    H(`3.${i + 1}. Con thứ ${ordName(i)}:`);
+    ml(`- Họ và tên: ${dots(c.hoTen)}\tNgày, tháng, năm sinh: ${fmtDate(c.ngaySinh)}`);
     line('- Nơi thường trú', c.noiThuongTru); line('- Nơi ở hiện nay', c.noiOHienNay);
-    B.push(P(`- Số định danh cá nhân/Số thẻ căn cước: ${dots(c.soDinhDanh)}; ngày cấp: ${fmtDate(c.ngayCap)}; nơi cấp: ${dots(c.noiCap)}`, { indent: 0.5 }));
+    ml(`- Số định danh cá nhân/Số thẻ căn cước: ${dots(c.soDinhDanh)}${S3}ngày cấp: ${fmtDate(c.ngayCap)}${S3}nơi cấp: ${dots(c.noiCap)}`);
   });
 
   // II. THÔNG TIN MÔ TẢ VỀ TÀI SẢN
-  B.push(P([R('II. THÔNG TIN MÔ TẢ VỀ TÀI SẢN', { b: true })], { before: 8 }));
+  B.push(P([R('II. THÔNG TIN MÔ TẢ VỀ TÀI SẢN', { b: true })]));
   const valStr = (g, it) => {
     if (it.giaTri_unk) return 'Không xác định được giá trị' + (it.giaTri_unkReason ? ' (lý do: ' + it.giaTri_unkReason + ')' : '');
     const f = g.fields.find(x => x.k === 'giaTri');
@@ -861,165 +864,160 @@ function buildDeclDoc(decl, prev, settings = {}) {
     return fmtVND(itemValue(g, it));
   };
   const ownerNote = it => (it.dungTen && it.dungTen !== 'Người kê khai') ? `Thuộc sở hữu/sử dụng của: ${it.dungTen}. ` : '';
-  const tail = (g, it) => {
-    B.push(P('- Thông tin khác (nếu có): ' + dots(it.thongTinKhac), { indent: 0.5 }));
-    B.push(P('+ Nguồn hình thành: ' + (blank(it.nguon) ? '' : it.nguon), { indent: 0.75 }));
-    B.push(P('+ Tình trạng quản lý, sử dụng' + (['datO', 'datKhac'].includes(g.key) ? '' : ', sở hữu') + ': ' + dots(it.tinhTrang), { indent: 0.75 }));
-    B.push(P('+ Ghi chú: ' + ownerNote(it) + dots(it.ghiChu), { indent: 0.75 }));
+  const area = v => v ? v + ' m²' : '';
+  const addr = it => [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' ');
+  const tail = (g, it, ttLabel) => {
+    B.push(P('- Thông tin khác (nếu có): ' + dots(it.thongTinKhac)));
+    B.push(P('+ Nguồn hình thành: ' + dots(it.nguon)));
+    B.push(P(`+ ${ttLabel}: ` + dots(it.tinhTrang)));
+    B.push(P('+ Ghi chú: ' + ownerNote(it) + dots(it.ghiChu)));
   };
-  const head = (txt, ind = 0) => B.push(P([R(txt, { b: true })], { indent: ind }));
-  const sub = (txt, ind = 0.25) => B.push(P([R(txt, { b: true, i: true })], { indent: ind }));
   const list = k => decl.ts[k] || [];
-  const realEstate = (g, labelFn) => {
-    const items = list(g.key);
-    if (!items.length) { B.push(P(KHONG, { indent: 0.5 })); return; }
-    items.forEach((it, i) => { B.push(P([R(`${g.sec}.${i + 1}. ${g.item} thứ ${ordName(i)}:`, { i: true })], { indent: 0.5 })); labelFn(it); tail(g, it); });
+  const items = (g, nameFn, bodyFn, ttLabel) => {
+    const arr = list(g.key);
+    if (!arr.length) { B.push(P(KHONG)); return; }
+    arr.forEach((it, i) => { if (nameFn) H(nameFn(i)); bodyFn(it); tail(g, it, ttLabel); });
   };
-  head('1. Quyền sử dụng đất:');
-  sub('1.1. Đất ở:');
-  realEstate(GROUP.datO, it => {
-    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
-    line('- Diện tích', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
-    line('- Giá trị', valStr(GROUP.datO, it)); line('- Giấy chứng nhận quyền sử dụng', it.gcn, 0.5, { empty: '' });
-  });
-  sub('1.2. Các loại đất khác:');
-  realEstate(GROUP.datKhac, it => {
-    line('- Loại đất', it.loaiDat, 0.5, { empty: '' });
-    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
-    line('- Diện tích', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
-    line('- Giá trị', valStr(GROUP.datKhac, it)); line('- Giấy chứng nhận quyền sử dụng', it.gcn, 0.5, { empty: '' });
-  });
-  head('2. Nhà ở, công trình xây dựng:');
-  sub('2.1. Nhà ở:');
-  realEstate(GROUP.nhaO, it => {
-    line('- Loại nhà', it.loaiNha, 0.5, { empty: '' });
-    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
-    line('- Diện tích sử dụng', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
-    line('- Giá trị', valStr(GROUP.nhaO, it)); line('- Giấy chứng nhận quyền sở hữu', it.gcn, 0.5, { empty: '' });
-  });
-  sub('2.2. Công trình xây dựng khác:');
-  realEstate(GROUP.congTrinh, it => {
-    line('- Tên công trình', it.ten, 0.5, { empty: '' });
-    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
-    line('- Diện tích', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
-    line('- Giá trị', valStr(GROUP.congTrinh, it)); line('- Giấy chứng nhận quyền sở hữu', it.gcn, 0.5, { empty: '' });
-  });
-  head('3. Tài sản khác gắn liền với đất:');
-  const simple3 = (g, title, fn) => {
-    sub(title); const items = list(g.key);
-    if (!items.length) { B.push(P(KHONG, { indent: 0.5 })); return; }
-    items.forEach(it => { fn(it); tail(g, it); });
-  };
-  simple3(GROUP.cayLauNam, '3.1. Cây lâu năm:', it => B.push(P(`- Loại cây: ${dots(it.loaiCay)}; Số lượng: ${dots(it.soLuong)}; Giá trị: ${valStr(GROUP.cayLauNam, it)}`, { indent: 0.5 })));
-  simple3(GROUP.rung, '3.2. Rừng sản xuất:', it => B.push(P(`- Loại rừng: ${dots(it.loaiRung)}; Diện tích: ${it.dienTich ? it.dienTich + ' m²' : ''}; Giá trị: ${valStr(GROUP.rung, it)}`, { indent: 0.5 })));
-  simple3(GROUP.vatKienTruc, '3.3. Vật kiến trúc khác gắn liền với đất:', it => B.push(P(`- Tên gọi: ${dots(it.tenGoi)}; Số lượng: ${dots(it.soLuong)}; Đơn vị: ${dots(it.donVi)}; Giá trị: ${valStr(GROUP.vatKienTruc, it)}`, { indent: 0.5 })));
+  H('1. Quyền sử dụng đất:');
+  H('1.1. Đất ở:');
+  items(GROUP.datO, i => `1.1.${i + 1}. Thửa thứ ${ordName(i)}:`, it => {
+    line('- Địa chỉ', addr(it), 0, { empty: '' }); line('- Diện tích', area(it.dienTich), 0, { empty: '' });
+    line('- Giá trị', valStr(GROUP.datO, it)); line('- Giấy chứng nhận quyền sử dụng', it.gcn, 0, { empty: '' });
+  }, 'Tình trạng quản lý, sử dụng');
+  H('1.2. Các loại đất khác:');
+  items(GROUP.datKhac, i => `1.2.${i + 1}. Thửa thứ ${ordName(i)}:`, it => {
+    ml(`- Loại đất: ${dots(it.loaiDat)}${S3}Địa chỉ: ${addr(it)}`); line('- Diện tích', area(it.dienTich), 0, { empty: '' });
+    line('- Giá trị', valStr(GROUP.datKhac, it)); line('- Giấy chứng nhận quyền sử dụng', it.gcn, 0, { empty: '' });
+  }, 'Tình trạng quản lý, sử dụng');
+  H('2. Nhà ở, công trình xây dựng:');
+  H('2.1. Nhà ở:');
+  items(GROUP.nhaO, i => `2.1.${i + 1}. Nhà thứ ${ordName(i)}:`, it => {
+    line('- Địa chỉ', addr(it), 0, { empty: '' }); line('- Loại nhà', it.loaiNha, 0, { empty: '' }); line('- Diện tích sử dụng', area(it.dienTich), 0, { empty: '' });
+    line('- Giá trị', valStr(GROUP.nhaO, it)); line('- Giấy chứng nhận quyền sở hữu', it.gcn, 0, { empty: '' });
+  }, 'Tình trạng quản lý, sử dụng, sở hữu');
+  H('2.2. Công trình xây dựng khác:');
+  items(GROUP.congTrinh, i => `2.2.${i + 1}. Công trình thứ ${ordName(i)}:`, it => {
+    ml(`- Tên công trình: ${dots(it.ten)}${S3}Địa chỉ: ${addr(it)}`); line('- Diện tích', area(it.dienTich), 0, { empty: '' });
+    line('- Giá trị', valStr(GROUP.congTrinh, it)); line('- Giấy chứng nhận quyền sở hữu', it.gcn, 0, { empty: '' });
+  }, 'Tình trạng quản lý, sử dụng, sở hữu');
+  H('3. Tài sản khác gắn liền với đất:');
+  H('3.1. Cây lâu năm:');
+  items(GROUP.cayLauNam, null, it => ml(`- Loại cây: ${dots(it.loaiCay)}${S3}Số lượng: ${dots(it.soLuong)}${S3}Giá trị: ${valStr(GROUP.cayLauNam, it)}`), 'Tình trạng quản lý, sử dụng, sở hữu');
+  H('3.2. Rừng sản xuất:');
+  items(GROUP.rung, null, it => ml(`- Loại rừng: ${dots(it.loaiRung)}${S3}Diện tích: ${area(it.dienTich)}${S3}Giá trị: ${valStr(GROUP.rung, it)}`), 'Tình trạng quản lý, sử dụng, sở hữu');
+  H('3.3. Vật kiến trúc khác gắn liền với đất:');
+  items(GROUP.vatKienTruc, null, it => ml(`- Tên gọi: ${dots(it.tenGoi)}${S3}Số lượng: ${dots(it.soLuong)}${S3}Đơn vị: ${dots(it.donVi)}${S3}Giá trị: ${valStr(GROUP.vatKienTruc, it)}`), 'Tình trạng quản lý, sử dụng, sở hữu');
 
-  head('4. Vàng, kim cương, bạch kim và các kim loại quý, đá quý khác:');
+  H('4. Vàng, kim cương, bạch kim và các kim loại quý, đá quý khác.');
   const klq = list('kimLoaiQuy').filter(it => settings.keKhaiDuoiNguong || it.giaTri_unk || itemValue(GROUP.kimLoaiQuy, it) >= NGUONG || klqGroupOver(decl, it));
-  if (!klq.length) B.push(P(KHONG, { indent: 0.5 }));
+  if (!klq.length) B.push(P(KHONG));
   klq.forEach((it, i) => {
-    B.push(P([R(`4.${i + 1}. Tài sản thứ ${ordName(i)}:`, { i: true })], { indent: 0.5 }));
-    B.push(P(`- Tên tài sản: ${dots(it.ten)}; Số lượng, đơn vị tính: ${dots(it.soLuong)}; Tổng giá trị: ${valStr(GROUP.kimLoaiQuy, it)}`, { indent: 0.5 }));
-    tail(GROUP.kimLoaiQuy, it);
+    H(`4.${i + 1}. Tài sản thứ ${ordName(i)}:`);
+    ml(`- Tên tài sản: ${dots(it.ten)}${S3}Số lượng, đơn vị tính: ${dots(it.soLuong)}${S3}Tổng giá trị: ${valStr(GROUP.kimLoaiQuy, it)}`);
+    tail(GROUP.kimLoaiQuy, it, 'Tình trạng quản lý, sử dụng, sở hữu');
   });
 
-  // 5. Tiền
+  // 5. Tiền — giữ đủ các mục 5.1–5.4 như mẫu
   const tien = groupTotal(decl, MONEY_KEYS);
   const showTien = tien >= NGUONG || settings.keKhaiDuoiNguong;
-  B.push(P([R('5. Tiền (tiền Việt Nam, ngoại tệ): ', { b: true }), R('ghi tổng số tiền tại thời điểm kê khai bao gồm tiền mặt, tiền cho vay, tiền trả trước, tiền gửi cá nhân, tổ chức trong nước, tổ chức nước ngoài tại Việt Nam: '), R(showTien ? fmtVND(tien) : KHONG, { b: true })]));
-  if (showTien) {
-    const sumOf = k => list(k).reduce((s, it) => s + itemValue(GROUP[k], it), 0);
-    const fxNote = (g, it) => (it.giaTri_cur && it.giaTri_cur !== 'VND') ? ` (${fmtMoney(it.giaTri_fx)} ${it.giaTri_cur}, tỷ giá ${fmtMoney(it.giaTri_rate)})` : '';
-    const tm = list('tienMat');
-    B.push(P(`5.1. Tiền mặt: ${tm.length ? fmtVND(sumOf('tienMat')) + tm.map(it => fxNote(GROUP.tienMat, it)).join('') : KHONG}. Tình trạng quản lý, sử dụng: ${tm.map(it => [ownerNote(it), it.tinhTrang].filter(Boolean).join('')).filter(Boolean).join('; ')}`, { indent: 0.25 }));
-    const cv = list('tienChoVay');
-    B.push(P(`5.2. Tiền cho vay: ${cv.length ? fmtVND(sumOf('tienChoVay')) : KHONG}. Tài liệu minh chứng (nếu có): ${cv.map(it => [it.benVay ? 'cho ' + it.benVay + ' vay ' + fmtMoney(itemValue(GROUP.tienChoVay, it)) + fxNote(GROUP.tienChoVay, it) : '', it.minhChung].filter(Boolean).join(', ')).filter(Boolean).join('; ')}`, { indent: 0.25 }));
-    const tt = list('tienTraTruoc');
-    B.push(P(`5.3. Tiền trả trước: ${tt.length ? fmtVND(sumOf('tienTraTruoc')) : KHONG}. Tài liệu minh chứng (nếu có): ${tt.map(it => [it.noiDung, it.minhChung].filter(Boolean).join(', ')).filter(Boolean).join('; ')}`, { indent: 0.25 }));
-    B.push(P('5.4. Tiền gửi cá nhân hoặc tổ chức trong nước, tổ chức nước ngoài tại Việt Nam', { indent: 0.25 }));
-    const tk = list('taiKhoan'), stk = list('soTietKiem'), kh = list('tienGuiKhac');
-    if (!tk.length && !stk.length && !kh.length) B.push(P(KHONG, { indent: 0.5 }));
-    tk.forEach(it => B.push(P(`- Số tài khoản thanh toán: ${dots(it.soTK)}. Tại đơn vị, tổ chức: ${dots(it.toChuc)}. Số dư tại thời điểm kê khai: ${fmtVND(itemValue(GROUP.taiKhoan, it))}${fxNote(GROUP.taiKhoan, it)}${it.dungTen && it.dungTen !== 'Người kê khai' ? ' (' + it.dungTen + ')' : ''}`, { indent: 0.5 })));
-    stk.forEach(it => B.push(P(`- Số tài khoản/số sổ tiết kiệm: ${dots(it.soTK)}. Tại đơn vị, tổ chức: ${dots(it.toChuc)}. Số tiền: ${fmtVND(itemValue(GROUP.soTietKiem, it))}${fxNote(GROUP.soTietKiem, it)}${it.dungTen && it.dungTen !== 'Người kê khai' ? ' (' + it.dungTen + ')' : ''}`, { indent: 0.5 })));
-    kh.forEach(it => B.push(P(`- Các loại tiền gửi khác: ${dots(it.moTa)}. Tổng số tiền: ${fmtVND(itemValue(GROUP.tienGuiKhac, it))}${fxNote(GROUP.tienGuiKhac, it)}. Tài liệu minh chứng (nếu có): ${dots(it.minhChung)}`, { indent: 0.5 })));
-  }
-  // 6. Chứng khoán
-  const ckT = groupTotal(decl, SEC_KEYS);
-  const showCk = ckT >= NGUONG || settings.keKhaiDuoiNguong;
-  head('6. Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác:');
-  if (!showCk) B.push(P(KHONG, { indent: 0.5 }));
-  else {
-    const sec6 = (k, title, fn) => { B.push(P(title, { indent: 0.25 })); const it = list(k); if (!it.length) B.push(P(KHONG, { indent: 0.5 })); it.forEach(x => B.push(P(fn(x), { indent: 0.5 }))); };
-    sec6('coPhieu', '6.1. Cổ phiếu:', x => `- Tên cổ phiếu: ${dots(x.ten)}; Số lượng: ${dots(x.soLuong)}; Giá trị: ${fmtVND(itemValue(GROUP.coPhieu, x))}`);
-    sec6('traiPhieu', '6.2. Trái phiếu:', x => `- Tên trái phiếu: ${dots(x.ten)}; Số lượng: ${dots(x.soLuong)}; Giá trị: ${fmtVND(itemValue(GROUP.traiPhieu, x))}`);
-    sec6('vonGop', '6.3. Vốn góp:', x => `- Hình thức, loại vốn góp: ${dots(x.hinhThuc)}; Giá trị: ${fmtVND(itemValue(GROUP.vonGop, x))}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`);
-    sec6('giayToCoGia', '6.4. Các loại giấy tờ có giá khác:', x => `- Tên giấy tờ có giá: ${dots(x.ten)}; Giá trị: ${fmtVND(itemValue(GROUP.giayToCoGia, x))}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`);
-  }
+  B.push(P('5. Tiền (tiền Việt Nam, ngoại tệ): ghi tổng số tiền tại thời điểm kê khai bao gồm tiền mặt, tiền cho vay, tiền trả trước, tiền gửi cá nhân, tổ chức trong nước, tổ chức nước ngoài tại Việt Nam: ' + (showTien ? fmtVND(tien) : KHONG)));
+  const T = k => showTien ? list(k) : [];
+  const sumOf = k => T(k).reduce((s2, it) => s2 + itemValue(GROUP[k], it), 0);
+  const fxNote = it => (it.giaTri_cur && it.giaTri_cur !== 'VND') ? ` (${fmtMoney(it.giaTri_fx)} ${it.giaTri_cur}, tỷ giá ${fmtMoney(it.giaTri_rate)})` : '';
+  const join = a => a.filter(Boolean).join('; ');
+  const tm = T('tienMat'), cv = T('tienChoVay'), tt = T('tienTraTruoc');
+  ml(`5.1. Tiền mặt: ${tm.length ? fmtVND(sumOf('tienMat')) + tm.map(fxNote).join('') : KHONG}${S3}Tình trạng quản lý, sử dụng: ${join(tm.map(it => ownerNote(it) + (it.tinhTrang || '')))}`);
+  ml(`5.2. Tiền cho vay: ${cv.length ? fmtVND(sumOf('tienChoVay')) : KHONG}${S3}Tài liệu minh chứng (nếu có): ${join(cv.map(it => [it.benVay ? 'cho ' + it.benVay + ' vay ' + fmtMoney(itemValue(GROUP.tienChoVay, it)) + fxNote(it) : '', it.minhChung].filter(Boolean).join(', ')))}`);
+  ml(`5.3. Tiền trả trước: ${tt.length ? fmtVND(sumOf('tienTraTruoc')) : KHONG}${S3}Tài liệu minh chứng (nếu có): ${join(tt.map(it => [it.noiDung, it.minhChung].filter(Boolean).join(', ')))}`);
+  H('5.4. Tiền gửi cá nhân hoặc tổ chức trong nước, tổ chức nước ngoài tại Việt Nam');
+  const tk = T('taiKhoan'), stk = T('soTietKiem'), kh = T('tienGuiKhac');
+  const own2 = it => it.dungTen && it.dungTen !== 'Người kê khai' ? ' (' + it.dungTen + ')' : '';
+  if (!tk.length) ml(`- Số tài khoản thanh toán: ${KHONG}`);
+  tk.forEach(it => ml(`- Số tài khoản thanh toán: ${dots(it.soTK)}${S3}Tại đơn vị, tổ chức: ${dots(it.toChuc)}${S3}Số dư tại thời điểm kê khai: ${fmtVND(itemValue(GROUP.taiKhoan, it))}${fxNote(it)}${own2(it)}`));
+  if (!stk.length) ml(`- Số tài khoản/số sổ tiết kiệm: ${KHONG}`);
+  stk.forEach(it => ml(`- Số tài khoản/số sổ tiết kiệm: ${dots(it.soTK)}${S3}Tại đơn vị, tổ chức: ${dots(it.toChuc)}${S3}Số tiền: ${fmtVND(itemValue(GROUP.soTietKiem, it))}${fxNote(it)}${own2(it)}`));
+  if (!kh.length) ml(`- Các loại tiền gửi khác: ${KHONG}`);
+  kh.forEach(it => ml(`- Các loại tiền gửi khác: ${dots(it.moTa)}${S3}Tổng số tiền: ${fmtVND(itemValue(GROUP.tienGuiKhac, it))}${fxNote(it)}${S3}Tài liệu minh chứng (nếu có): ${dots(it.minhChung)}`));
+
+  // 6. Cổ phiếu... — giữ đủ 6.1–6.4
+  const showCk = groupTotal(decl, SEC_KEYS) >= NGUONG || settings.keKhaiDuoiNguong;
+  const C = k => showCk ? list(k) : [];
+  H('6. Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác:');
+  H('6.1. Cổ phiếu:'); if (!C('coPhieu').length) B.push(P(KHONG));
+  C('coPhieu').forEach(x => ml(`- Tên cổ phiếu: ${dots(x.ten)}${S3}Số lượng: ${dots(x.soLuong)}${S3}Giá trị: ${fmtVND(itemValue(GROUP.coPhieu, x))}`));
+  H('6.2. Trái phiếu:'); if (!C('traiPhieu').length) B.push(P(KHONG));
+  C('traiPhieu').forEach(x => ml(`- Tên trái phiếu: ${dots(x.ten)}${S3}Số lượng: ${dots(x.soLuong)}${S3}Giá trị: ${fmtVND(itemValue(GROUP.traiPhieu, x))}`));
+  H('6.3. Vốn góp:'); if (!C('vonGop').length) B.push(P(KHONG));
+  C('vonGop').forEach(x => { ml(`- Hình thức, loại vốn góp: ${dots(x.hinhThuc)}${S3}Giá trị: ${fmtVND(itemValue(GROUP.vonGop, x))}`); B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung))); });
+  H('6.4. Các loại giấy tờ có giá khác:'); if (!C('giayToCoGia').length) B.push(P(KHONG));
+  C('giayToCoGia').forEach(x => { ml(`- Tên giấy tờ có giá: ${dots(x.ten)}${S3}Giá trị: ${fmtVND(itemValue(GROUP.giayToCoGia, x))}`); B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung))); });
+
   // 7. Tài sản khác
-  head('7. Tài sản khác:');
-  const over = (k) => list(k).filter(it => settings.keKhaiDuoiNguong || itemValue(GROUP[k], it) >= NGUONG || it.giaTri_unk);
-  B.push(P('7.1. Tài sản theo quy định của pháp luật phải đăng ký sử dụng và được cấp giấy đăng ký (tàu bay, tàu thủy, thuyền, máy ủi, máy xúc, ô tô, mô tô, xe gắn máy...):', { indent: 0.25 }));
-  const d71 = over('tsDangKy'); if (!d71.length) B.push(P(KHONG, { indent: 0.5 }));
-  d71.forEach(x => B.push(P(`- Tên tài sản: ${dots(x.ten)}; Số đăng ký: ${dots(x.soDangKy)}; Giá trị: ${valStr(GROUP.tsDangKy, x)}; Thông tin khác (nếu có): ${ownerNote(x)}${dots(x.thongTinKhac)}`, { indent: 0.5 })));
-  B.push(P('7.2. Tài sản khác như tài sản số, tài sản đấu giá (biển số xe, sim điện thoại...), quyền sở hữu trí tuệ, đồ mỹ nghệ, đồ thờ cúng, bàn ghế, cây cảnh, tranh, ảnh, cổ vật...:', { indent: 0.25 }));
-  const d72 = over('tsKhac'); if (!d72.length) B.push(P(KHONG, { indent: 0.5 }));
-  d72.forEach(x => B.push(P(`- Loại tài sản: ${dots(x.loai)}; Số lượng, giá trị: ${dots(x.soLuong)}${x.soLuong ? ', ' : ''}${valStr(GROUP.tsKhac, x)}; Thông tin khác (nếu có): ${ownerNote(x)}${dots(x.thongTinKhac)}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`, { indent: 0.5 })));
-  // 8, 9
-  head('8. Tài sản ở nước ngoài:');
-  const nn = list('tsNuocNgoai'); if (!nn.length) B.push(P(KHONG, { indent: 0.5 }));
-  nn.forEach(x => B.push(P(`- ${dots(x.loai)} tại ${dots(x.quocGia)}: ${dots(x.moTa)}; Giá trị: ${valStr(GROUP.tsNuocNgoai, x)}`, { indent: 0.5 })));
-  head('9. Tài khoản ở nước ngoài:');
-  const tkn = list('tkNuocNgoai'); if (!tkn.length) B.push(P(KHONG, { indent: 0.5 }));
-  tkn.forEach(x => { B.push(P(`- Tên chủ tài khoản: ${dots(x.chuTK)}; Số tài khoản: ${dots(x.soTK)}`, { indent: 0.5 })); B.push(P(`- Tên ngân hàng, chi nhánh ngân hàng, tổ chức nơi mở tài khoản: ${dots(x.nganHang)}`, { indent: 0.5 })); });
+  H('7. Tài sản khác:');
+  const over = k => list(k).filter(it => settings.keKhaiDuoiNguong || itemValue(GROUP[k], it) >= NGUONG || it.giaTri_unk);
+  H('7.1. Tài sản theo quy định của pháp luật phải đăng ký sử dụng và được cấp giấy đăng ký (tàu bay, tàu thủy, thuyền, máy ủi, máy xúc, ô tô, mô tô, xe gắn máy…)');
+  const d71 = over('tsDangKy'); if (!d71.length) B.push(P(KHONG));
+  d71.forEach(x => { ml(`- Tên tài sản: ${dots(x.ten)}${S3}Số đăng ký: ${dots(x.soDangKy)}`); ml(`Giá trị: ${valStr(GROUP.tsDangKy, x)}${S3}Thông tin khác (nếu có): ${ownerNote(x)}${dots(x.thongTinKhac)}`); });
+  B.push(P([R('7.2. Tài sản khác như tài sản số, tài sản đấu giá '), R('(biển số xe, sim điện thoại,...)', { i: true }), R(', quyền sở hữu trí tuệ, đồ mỹ nghệ, đồ thờ cúng, bàn ghế, cây cảnh, tranh, ảnh, cổ vật, …:')]));
+  const d72 = over('tsKhac'); if (!d72.length) B.push(P(KHONG));
+  d72.forEach(x => { ml(`- Loại tài sản: ${dots(x.loai)}${S3}Số lượng, giá trị: ${[x.soLuong, valStr(GROUP.tsKhac, x)].filter(Boolean).join(', ')}`); ml(`- Thông tin khác (nếu có): ${ownerNote(x)}${dots(x.thongTinKhac)}${S3}Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`); });
+  H('8. Tài sản ở nước ngoài:');
+  const nn = list('tsNuocNgoai'); if (!nn.length) B.push(P(KHONG));
+  nn.forEach(x => B.push(P(`- ${dots(x.loai)} tại ${dots(x.quocGia)}: ${dots(x.moTa)}; Giá trị: ${valStr(GROUP.tsNuocNgoai, x)}`)));
+  H('9. Tài khoản ở nước ngoài:');
+  const tkn = list('tkNuocNgoai'); if (!tkn.length) B.push(P(KHONG));
+  tkn.forEach(x => { ml(`- Tên chủ tài khoản: ${dots(x.chuTK)}${S3}Số tài khoản: ${dots(x.soTK)}`); B.push(P(`- Tên ngân hàng, chi nhánh ngân hàng, tổ chức nơi mở tài khoản: ${dots(x.nganHang)}`)); });
+
   // 10. Thu nhập
-  B.push(P([R('10. Tổng thu nhập giữa hai lần kê khai, gồm thu nhập bằng tiền; bằng tài sản hoặc hiện vật có giá trị (ước tính hoặc giá niêm yết):', { b: true })]));
-  if (lanDau) B.push(P('(Kê khai lần đầu — không phải kê khai)', { indent: 0.5 }));
+  H('10. Tổng thu nhập giữa hai lần kê khai, gồm thu nhập bằng tiền; bằng tài sản hoặc hiện vật có giá trị (ước tính hoặc giá niêm yết):');
+  if (lanDau) B.push(P('Không phải kê khai (kê khai lần đầu)'));
   else {
-    const per = incomePeriod(decl, prev); const t = decl.thuNhap; const inc = incomeTotals(decl);
-    if (per && per.tu) B.push(P([R(`(Từ ngày ${fmtDate(per.tu)} đến ngày ${fmtDate(per.den)})`, { i: true })], { indent: 0.5 }));
-    B.push(P(`- Thu nhập của người kê khai: ${fmtVND(inc.ban)}, gồm:`, { indent: 0.5 }));
-    B.push(P(`+ Thu nhập từ lương, phụ cấp, trợ cấp: ${fmtVND(num(t.ban.luong))}`, { indent: 0.75 }));
-    B.push(P(`+ Thu nhập từ kinh doanh hoặc từ nguồn khác (nếu có): ${num(t.ban.khac) ? fmtVND(num(t.ban.khac)) + (t.ban.khacGhiChu ? ' (' + t.ban.khacGhiChu + ')' : '') : KHONG}`, { indent: 0.75 }));
+    const t = decl.thuNhap; const inc = incomeTotals(decl);
+    B.push(P(`- Thu nhập của người kê khai: ${fmtVND(inc.ban)}, gồm:`));
+    B.push(P(`+ Thu nhập từ lương, phụ cấp, trợ cấp: ${fmtVND(num(t.ban.luong))}`));
+    B.push(P(`+ Thu nhập từ kinh doanh hoặc từ nguồn khác (nếu có): ${num(t.ban.khac) ? fmtVND(num(t.ban.khac)) + (t.ban.khacGhiChu ? ' (' + t.ban.khacGhiChu + ')' : '') : KHONG}`));
     if (decl.coVoChong) {
-      B.push(P(`- Thu nhập của vợ/chồng người kê khai: ${fmtVND(inc.vc)}, gồm:`, { indent: 0.5 }));
-      B.push(P(`+ Thu nhập từ lương, phụ cấp, trợ cấp, tiền công: ${num(t.voChong.luong) ? fmtVND(num(t.voChong.luong)) : KHONG}`, { indent: 0.75 }));
-      B.push(P(`+ Thu nhập từ kinh doanh hoặc từ nguồn khác (nếu có): ${num(t.voChong.khac) ? fmtVND(num(t.voChong.khac)) + (t.voChong.khacGhiChu ? ' (' + t.voChong.khacGhiChu + ')' : '') : KHONG}`, { indent: 0.75 }));
-    } else B.push(P(`- Thu nhập của vợ/chồng người kê khai: ${KHONG}`, { indent: 0.5 }));
-    B.push(P(`- Thu nhập của con chưa thành niên: ${num(t.con) ? fmtVND(num(t.con)) + (t.conGhiChu ? ' (' + t.conGhiChu + ')' : '') : KHONG}`, { indent: 0.5 }));
-    B.push(P(`- Các khoản thu nhập chung: ${num(t.chung) ? fmtVND(num(t.chung)) + (t.chungGhiChu ? ' (' + t.chungGhiChu + ')' : '') : KHONG}`, { indent: 0.5 }));
-    B.push(P([R(`- Tổng thu nhập giữa hai lần kê khai: `), R(fmtVND(inc.tong), { b: true })], { indent: 0.5 }));
+      B.push(P(`- Thu nhập của vợ/chồng người kê khai: ${fmtVND(inc.vc)}, gồm:`));
+      B.push(P(`+ Thu nhập từ lương, phụ cấp, trợ cấp, tiền công: ${num(t.voChong.luong) ? fmtVND(num(t.voChong.luong)) : KHONG}`));
+      B.push(P(`+ Thu nhập từ kinh doanh hoặc từ nguồn khác (nếu có): ${num(t.voChong.khac) ? fmtVND(num(t.voChong.khac)) + (t.voChong.khacGhiChu ? ' (' + t.voChong.khacGhiChu + ')' : '') : KHONG}`));
+    } else B.push(P(`- Thu nhập của vợ/chồng người kê khai: ${KHONG}`));
+    B.push(P(`- Thu nhập của con chưa thành niên: ${num(t.con) ? fmtVND(num(t.con)) + (t.conGhiChu ? ' (' + t.conGhiChu + ')' : '') : KHONG}`));
+    B.push(P(`- Các khoản thu nhập chung: ${num(t.chung) ? fmtVND(num(t.chung)) + (t.chungGhiChu ? ' (' + t.chungGhiChu + ')' : '') : KHONG}`));
+    B.push(P(`- Tổng thu nhập giữa hai lần kê khai: ${fmtVND(inc.tong)}`));
   }
   // 11. Nợ
-  B.push(P([R('11. Các khoản nợ có giá trị từ 150 triệu đồng trở lên: ', { b: true }), R('kê khai các khoản nợ bằng tiền, bằng hiện vật... của tổ chức, cá nhân; ghi rõ số lượng, chủng loại, giá trị; tài liệu minh chứng (nếu có).')]));
+  H('11. Các khoản nợ có giá trị từ 150 triệu đồng trở lên: kê khai các khoản nợ bằng tiền, bằng hiện vật, ... của tổ chức, cá nhân; ghi rõ số lượng, chủng loại, giá trị; tài liệu minh chứng (nếu có).');
   const noList = list('no').filter(x => settings.keKhaiDuoiNguong || itemValue(GROUP.no, x) >= NGUONG);
-  if (!noList.length) B.push(P(KHONG, { indent: 0.5 }));
-  noList.forEach((x, i) => B.push(P(`- Khoản nợ thứ ${ordName(i)}: nợ ${dots(x.chuNo)}; ${dots(x.noiDung)}; Giá trị: ${valStr(GROUP.no, x)}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`, { indent: 0.5 })));
+  if (!noList.length) B.push(P(KHONG));
+  noList.forEach(x => ml(`- Bên cho vay: ${dots(x.chuNo)}${S3}Số lượng, chủng loại: ${dots(x.noiDung)}${S3}Giá trị: ${valStr(GROUP.no, x)}${S3}Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`));
 
   // III. BIẾN ĐỘNG
-  B.push(P([R('III. BIẾN ĐỘNG TÀI SẢN, THU NHẬP; GIẢI TRÌNH BIẾN ĐỘNG TÀI SẢN, THU NHẬP', { b: true })], { before: 8 }));
-  if (lanDau) B.push(P('(Kê khai lần đầu — không phải kê khai)', { indent: 0.5 }));
+  B.push(P([R('III. BIẾN ĐỘNG TÀI SẢN, THU NHẬP; GIẢI TRÌNH BIẾN ĐỘNG TÀI SẢN, THU NHẬP ', { b: true }), R('(nếu là kê khai tài sản, thu nhập lần đầu thì không phải kê khai):', { i: true })]));
+  if (lanDau) B.push(P('Không phải kê khai (kê khai lần đầu)'));
   else {
-    B.push(P([R('1. Tài sản, thu nhập tăng', { b: true })]));
-    if (!decl.bienDong.tang.length) B.push(P(KHONG, { indent: 0.5 }));
+    H('1. Tài sản, thu nhập tăng:');
+    if (!decl.bienDong.tang.length) B.push(P(KHONG));
     decl.bienDong.tang.forEach((x, i) => {
-      B.push(P(`1.${i + 1}. Tài sản, thu nhập tăng thứ ${ordName(i)}: ${x.moTa}; giá trị tăng: ${fmtVND(num(x.giaTri))}`, { indent: 0.25 }));
-      B.push(P('- Giải trình nguồn gốc tài sản, thu nhập tăng thêm: ' + dots(x.giaiTrinh), { indent: 0.5 }));
-      B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung), { indent: 0.5 }));
+      H(`1.${i + 1}. Tài sản, thu nhập tăng thứ ${ordName(i)}: ${x.moTa}${num(x.giaTri) ? '; giá trị tăng: ' + fmtVND(num(x.giaTri)) : ''}`);
+      B.push(P('- Giải trình nguồn gốc tài sản, thu nhập tăng thêm: ' + dots(x.giaiTrinh)));
+      B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung)));
     });
-    B.push(P([R('2. Tài sản, thu nhập giảm', { b: true })]));
-    if (!decl.bienDong.giam.length) B.push(P(KHONG, { indent: 0.5 }));
+    H('2. Tài sản, thu nhập giảm:');
+    if (!decl.bienDong.giam.length) B.push(P(KHONG));
     decl.bienDong.giam.forEach((x, i) => {
-      B.push(P(`2.${i + 1}. Tài sản, thu nhập giảm thứ ${ordName(i)}: ${x.moTa}; giá trị giảm: ${fmtVND(num(x.giaTri))}`, { indent: 0.25 }));
-      B.push(P('- Nguyên nhân tài sản, thu nhập giảm: ' + dots(x.giaiTrinh), { indent: 0.5 }));
-      B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung), { indent: 0.5 }));
+      H(`2.${i + 1}. Tài sản, thu nhập giảm thứ ${ordName(i)}: ${x.moTa}${num(x.giaTri) ? '; giá trị giảm: ' + fmtVND(num(x.giaTri)) : ''}`);
+      B.push(P('- Ghi nguyên nhân tài sản, thu nhập giảm: ' + dots(x.giaiTrinh)));
+      B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung)));
     });
   }
   // IV
-  B.push(P([R('IV. NỘI DUNG THAY ĐỔI, BỔ SUNG, ĐIỀU CHỈNH', { b: true })], { before: 8 }));
-  B.push(P([R('1. Nội dung thay đổi, bổ sung, điều chỉnh về thông tin chung (nếu có):', { b: true })]));
-  B.push(P(blank(decl.thayDoi.thongTinChung) ? KHONG : decl.thayDoi.thongTinChung, { indent: 0.5 }));
-  B.push(P([R('2. Nội dung thay đổi, bổ sung, điều chỉnh về kê khai tài sản, thu nhập (nếu có):', { b: true })]));
-  B.push(P(blank(decl.thayDoi.taiSan) ? KHONG : decl.thayDoi.taiSan, { indent: 0.5 }));
+  B.push(P([R('IV. NỘI DUNG THAY ĐỔI, BỔ SUNG, ĐIỀU CHỈNH', { b: true })]));
+  B.push(P([R('1. Nội dung thay đổi, bổ sung, điều chỉnh về thông tin chung (nếu có)', { b: true })]));
+  B.push(P('Ghi những nội dung thay đổi, điều chỉnh, bổ sung về người kê khai, vợ hoặc chồng và con chưa thành niên (nếu có):'));
+  B.push(P(val(decl.thayDoi.thongTinChung)));
+  B.push(P([R('2. Nội dung thay đổi, bổ sung, điều chỉnh về kê khai tài sản, thu nhập (nếu có)', { b: true })]));
+  B.push(P('Ghi những nội dung thay đổi, điều chỉnh, bổ sung về tài sản, thu nhập, biến động tài sản, thu nhập tăng hoặc giảm:'));
+  B.push(P(val(decl.thayDoi.taiSan)));
 
   // Chuẩn hoá định dạng thân bài theo văn bản hành chính: 14pt, giãn dòng 1,15, cách đoạn 6pt, thụt đầu dòng 1,27cm
   for (let i = bodyStart; i < B.length; i++) {
@@ -1027,8 +1025,8 @@ function buildDeclDoc(decl, prev, settings = {}) {
     const txt = (b.runs || []).map(r => r.x).join('');
     b.before = 6; b.after = 6; b.line = 1.15; b.indent = 0; delete b.size;
     b.firstLine = (b.align === 'center' || /^[IVX]+\.\s/.test(txt)) ? 0 : 1.27;
-    if (txt.includes('\t') && b.align === 'both') b.align = 'left';
-    b.keepNext = (b.runs || []).every(r => r.b) && txt.length < 140;
+    if ((b.multi || txt.includes('\t')) && b.align === 'both') b.align = 'left';
+    b.keepNext = ((b.runs || []).every(r => r.b) && txt.length < 140) || (/^\d+(\.\d+)*\.\s/.test(txt) && /:$/.test(txt) && txt.length < 90);
   }
   const lastBody = [...B].reverse().find(b => b.t === 'p'); if (lastBody) { lastBody.after = 12; lastBody.keepNext = false; }
 
@@ -1165,7 +1163,7 @@ function buildDocx(blocks, o = {}) {
   const footer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${ns}><w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr>${rf}<w:i/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${xe(footerTxt)}</w:t></w:r></w:p></w:ftr>`;
   const header = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr ${ns}><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:t>2</w:t></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r></w:p></w:hdr>`;
   const headerFirst = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr ${ns}><w:p/></w:hdr>`;
-  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${ns}><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdH1"/><w:headerReference w:type="first" r:id="rIdH2"/><w:footerReference w:type="default" r:id="rIdF1"/><w:footerReference w:type="first" r:id="rIdF2"/><w:pgSz w:w="${W}" w:h="${H}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="${mT}" w:right="${mR}" w:bottom="${mB}" w:left="${mL}" w:header="567" w:footer="454" w:gutter="0"/><w:titlePg/></w:sectPr></w:body></w:document>`;
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${ns}><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdH1"/><w:headerReference w:type="first" r:id="rIdH2"/>${footerTxt ? '<w:footerReference w:type="default" r:id="rIdF1"/><w:footerReference w:type="first" r:id="rIdF2"/>' : ''}<w:pgSz w:w="${W}" w:h="${H}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="${mT}" w:right="${mR}" w:bottom="${mB}" w:left="${mL}" w:header="567" w:footer="454" w:gutter="0"/><w:titlePg/></w:sectPr></w:body></w:document>`;
   const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="${size * 2}"/><w:szCs w:val="${size * 2}"/><w:lang w:val="vi-VN"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`;
   const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
   const files = [
@@ -1359,7 +1357,7 @@ const ASSET_LABELS = [
   L('ghiChu', 'ghi chu'), L('loaiCay', 'loai cay'), L('loaiRung', 'loai rung'), L('tenGoi', 'ten goi'), L('donVi', 'don vi(?! cong tac)(?!, to chuc)'),
   L('soLuong', 'so luong, don vi tinh|so luong, gia tri|so luong'), L('soDangKy', 'so dang ky'), L('namSoHuu', 'nam bat dau so huu'),
   L('hinhThuc', 'hinh thuc, loai von gop|hinh thuc gop von'), L('minhChung', 'tai lieu minh chung(?: \\(neu co\\))?'),
-  L('loai', 'loai tai san'), L('chuTK', 'ten chu tai khoan'), L('soTK', 'so tai khoan thanh toan|so tai khoan\\/so so tiet kiem|so tai khoan|so so tiet kiem'),
+  L('loai', 'loai tai san'), L('chuTK', 'ten chu tai khoan'), L('chuNo', 'ben cho vay'), L('noiDung', 'so luong, chung loai'), L('soTK', 'so tai khoan thanh toan|so tai khoan\\/so so tiet kiem|so tai khoan|so so tiet kiem'),
   L('nganHang', 'ten ngan hang, chi nhanh ngan hang, to chuc noi mo tai khoan|ten ngan hang'),
   L('toChuc', 'tai don vi, to chuc'), L('soDu', 'so du tai thoi diem ke khai|so tien'),
 ];
@@ -1542,14 +1540,14 @@ function parseDeclText(rawLines) {
     if (part === 3) {
       let m = s.match(/^([12])\.\d+\.\s*tai san, thu nhap (tang|giam) thu [^:]*:/);
       if (m) { const rest = line.slice(line.indexOf(':') + 1); const gi = rest.search(/;\s*gi[aá] tr[iị] (t[aă]ng|gi[aả]m)\s*:/i); const moTa = cleanVal(gi >= 0 ? rest.slice(0, gi) : rest); const gt = gi >= 0 ? parseMoney(rest.slice(gi)) : 0; const it = { id: K.uid(), auto: false, moTa, giaTri: gt ? String(gt) : '', giaiTrinh: '', minhChung: '' }; d.bienDong[m[2] === 'tang' ? 'tang' : 'giam'].push(it); d._bd = it; continue; }
-      if (d._bd && /^-\s*(giai trinh|nguyen nhan)/.test(s)) { d._bd.giaiTrinh = norm(line.slice(line.indexOf(':') + 1)); continue; }
+      if (d._bd && /^-\s*(giai trinh|ghi nguyen nhan|nguyen nhan)/.test(s)) { d._bd.giaiTrinh = norm(line.slice(line.indexOf(':') + 1)); continue; }
       if (d._bd && /^-\s*tai lieu minh chung/.test(s)) { d._bd.minhChung = norm(line.slice(line.indexOf(':') + 1)); continue; }
       continue;
     }
     if (part === 4) {
       if (/^1\.\s*noi dung/.test(s)) { sub = 'ttc'; continue; }
       if (/^2\.\s*noi dung/.test(s)) { sub = 'ts'; continue; }
-      if (/^khong co$/.test(s)) continue;
+      if (/^khong co$/.test(s) || /^ghi nhung noi dung thay doi/.test(s)) continue;
       if (sub === 'ttc') d.thayDoi.thongTinChung = [d.thayDoi.thongTinChung, line].filter(Boolean).join('\n');
       if (sub === 'ts') d.thayDoi.taiSan = [d.thayDoi.taiSan, line].filter(Boolean).join('\n');
     }
@@ -2199,7 +2197,7 @@ document.addEventListener('click', async e => {
   if (b.dataset.pick === 'delHS') { m._close(null); if (await confirmBox('Xoá hồ sơ', `Xoá vĩnh viễn toàn bộ hồ sơ "${esc(h.label)}" (mọi kỳ kê khai) khỏi máy này? Nên sao lưu ra file trước.`, 'Xoá', true)) { db.hoso = db.hoso.filter(x => x.id !== h.id); db.cur = { hosoId: db.hoso[0]?.id || null, declId: db.hoso[0]?.decls.slice(-1)[0]?.id || null }; persist(); render(); } }
 });
 
-function exportOpts(d) { return { fontSize: +db.settings.fontSize || 14, footer: `Người kê khai ký: ............................`, title: 'Bản kê khai tài sản, thu nhập — ' + (d.nguoi.hoTen || ''), creator: d.nguoi.hoTen }; }
+function exportOpts(d) { return { fontSize: +db.settings.fontSize || 14, footer: '', title: 'Bản kê khai tài sản, thu nhập — ' + (d.nguoi.hoTen || ''), creator: d.nguoi.hoTen }; }
 function declBlocks(d) { return K.buildDeclDoc(d, prevOf(curHoSo(), d), { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong }); }
 async function exportDocx(d, blocks, name) {
   const R = K.review(d, curPrev(), { lcs: db.settings.lcs }); const nErr = R.filter(x => x.level === 'loi').length;

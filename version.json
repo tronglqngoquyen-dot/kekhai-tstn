@@ -1,6 +1,6 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "build": "2026-11-22",
-  "notes": "File Word xuất ra theo chuẩn văn bản hành chính (14pt, giãn dòng 1,15, cách đoạn 6pt)",
+  "notes": "Bản kê khai xuất ra khớp từng dòng với mẫu Phụ lục NĐ 164/2026/NĐ-CP",
   "download": "https://tronglqngoquyen-dot.github.io/kekhai-tstn/KeKhaiTSTN.html"
 }
