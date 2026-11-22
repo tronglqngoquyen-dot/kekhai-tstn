@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kê khai TSTN — Kê khai tài sản, thu nhập theo NĐ 164/2026/NĐ-CP</title>
+<meta name="description" content="Phần mềm miễn phí, chạy offline: lập, tự rà soát và xuất bản kê khai tài sản, thu nhập đúng mẫu Nghị định 164/2026/NĐ-CP. Dữ liệu lưu trên máy người dùng.">
+<meta name="author" content="Lê Quang Trọng, đảo Phú Quý · 0909084181 · lequangtrong.c3ngoquyen@moet.edu.vn">
+<meta name="theme-color" content="#9b1c1c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--ink:#1d2433;--mute:#5d6778;--line:#dfe3ea;--pri:#9b1c1c;--pri2:#c0392b;--pri-soft:#fdecea;--ok:#1e7d4f;--ok-soft:#e5f5ec;--warn:#a15c00;--warn-soft:#fff4e0;--info:#1f5fa8;--info-soft:#e8f0fb;--r:10px;--sh:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08)}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{font:14.5px/1.5 "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--info)}
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:8px 16px;background:linear-gradient(90deg,#7f1414,#a52a2a);color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;white-space:nowrap}
+.brand .logo{width:30px;height:30px;border-radius:8px;background:#fff;color:var(--pri);display:grid;place-items:center;font-weight:800;font-size:9.5px;letter-spacing:-.2px}
+.brand small{display:block;font-weight:400;font-size:11px;opacity:.85}
+.tabs{display:flex;gap:4px;margin-left:12px}
+.tabs button{background:rgba(255,255,255,.12);border:0;color:#fff;padding:6px 14px;border-radius:999px;cursor:pointer}
+.tabs button.on{background:#fff;color:var(--pri);font-weight:600}
+.top .sp{flex:1}
+.top .tb{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 11px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.top .tb:hover{background:rgba(255,255,255,.12)}
+.saved{font-size:12px;opacity:.9;white-space:nowrap}
+.wrap{display:grid;grid-template-columns:270px 1fr;min-height:calc(100vh - 50px)}
+.side{background:#fff;border-right:1px solid var(--line);padding:12px;position:sticky;top:50px;height:calc(100vh - 50px);overflow:auto}
+.side h4{margin:14px 6px 6px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.nav a{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border-radius:8px;color:var(--ink);text-decoration:none;cursor:pointer;font-size:13.8px}
+.nav a:hover{background:#f2f4f7}.nav a.on{background:var(--pri-soft);color:var(--pri);font-weight:600}
+.badge{min-width:20px;height:20px;padding:0 6px;border-radius:999px;font-size:11.5px;display:inline-grid;place-items:center;font-weight:700}
+.b-err{background:#fde2e1;color:#b42318}.b-warn{background:var(--warn-soft);color:var(--warn)}.b-ok{background:var(--ok-soft);color:var(--ok)}
+.main{padding:20px 26px 80px;max-width:1080px;width:100%}
+.hs-box{background:#f8f9fb;border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.hs-box select{width:100%;margin:4px 0}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0}h3{font-size:15px;margin:0}
+.sub{color:var(--mute);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px 18px;margin:0 0 16px}
+.card-h{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:10px}
+.sec{display:inline-block;background:var(--pri);color:#fff;border-radius:6px;padding:1px 8px;font-size:12.5px;font-weight:700;margin-right:6px}
+.desc{color:var(--mute);font-size:13px;margin:-4px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px}
+.grid.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.full{grid-column:1/-1}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:13px;color:#344054;font-weight:500}
+label.f .h{font-weight:400;color:var(--mute);font-size:12px}
+input[type=text],input[type=date],input[type=password],input[type=number],select,textarea{border:1px solid #cfd5df;border-radius:8px;padding:7px 10px;background:#fff;width:100%;font-weight:400}
+textarea{min-height:60px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid #f3b4ae;border-color:var(--pri2)}
+.money-read{font-size:12px;color:var(--ok);font-weight:500;min-height:16px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd5df;background:#fff;border-radius:8px;padding:7px 13px;cursor:pointer;font-weight:500}
+.btn:hover{background:#f6f7f9}.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}.btn.pri:hover{background:#861818}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}.btn.ghost{border-color:transparent;background:transparent}
+.btn.sm{padding:4px 9px;font-size:12.5px}.btn.dang{color:#b42318;border-color:#f3c0bc}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.item{border:1px solid var(--line);border-radius:9px;margin:10px 0;background:#fcfcfd}
+.item-h{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;border-bottom:1px solid transparent}
+.item.open .item-h{border-bottom-color:var(--line)}
+.item-h .t{flex:1;font-weight:600}.item-h .v{color:var(--ok);font-weight:600;white-space:nowrap}
+.item-b{padding:12px;display:none}.item.open .item-b{display:block}
+.empty{color:var(--mute);font-style:italic;padding:6px 2px}
+.note{border-radius:9px;padding:10px 14px;margin:0 0 14px;font-size:13.5px}
+.note.info{background:var(--info-soft);color:#173f6e}.note.warn{background:var(--warn-soft);color:#6b3d00}.note.ok{background:var(--ok-soft);color:#14532d}.note.err{background:#fde2e1;color:#7a1d16}
+.find{display:flex;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);cursor:pointer}.find:hover{background:#fafafa}
+.find .lv{flex:none;font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 7px;height:fit-content}
+.lv.loi{background:#fde2e1;color:#b42318}.lv.canh_bao{background:var(--warn-soft);color:var(--warn)}.lv.goi_y{background:var(--info-soft);color:var(--info)}
+.find .s{font-weight:600;font-size:13px}.find .m{font-size:13.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.kpi b{display:block;font-size:20px}.kpi span{font-size:12px;color:var(--mute)}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+table.t th{background:#f8f9fb;font-weight:600;font-size:12.5px;color:#344054}
+table.t td.n,table.t th.n{text-align:right;white-space:nowrap}
+.pt{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.pt label{border:1.5px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;font-size:13px;background:#fff}
+.pt label.on{border-color:var(--pri);background:var(--pri-soft)}
+.pt input{display:none}.pt b{display:block;font-size:14px;margin-bottom:2px}
+.chk{display:flex;gap:8px;align-items:center;font-size:13.5px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100;display:grid;place-items:center;padding:20px}
+.modal .box{background:#fff;border-radius:12px;max-width:920px;width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal .mh{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.modal .mb{padding:16px 18px;overflow:auto}.modal .mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.modal.sm .box{max-width:460px}
+.doc{font-family:"Times New Roman",Times,serif;color:#000;background:#fff;line-height:1.3}
+.doc p{margin:0}.doc table{border-collapse:collapse}.doc table.bd td{border:1px solid #000;padding:3px 5px}.doc table.nb td{vertical-align:top}
+.doc .hr{border-top:1px solid #000;margin:2px auto 0}
+.paper{background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.15);padding:2cm 2cm 2cm 3cm;max-width:21cm;margin:0 auto}
+.foot{color:var(--mute);font-size:12px;text-align:center;padding:24px 0 8px}
+.banner{background:#fff7d6;border-bottom:1px solid #f0d77a;padding:8px 16px;font-size:13.5px;display:flex;gap:10px;align-items:center}
+.welcome{max-width:760px;margin:40px auto}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.choice .card{cursor:pointer;transition:.15s}.choice .card:hover{border-color:var(--pri);transform:translateY(-1px)}
+.stat-ok{color:var(--ok);font-weight:700}.stat-err{color:#b42318;font-weight:700}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1d2433;color:#fff;padding:10px 18px;border-radius:9px;z-index:200;box-shadow:0 8px 20px rgba(0,0,0,.25);font-size:14px}
+.mut{color:var(--mute)}.small{font-size:12.5px}.r{text-align:right}
+.calc td input{min-width:80px}
+.stepper{display:flex;justify-content:space-between;margin-top:18px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.side{position:static;height:auto}.grid,.grid.g3,.pt,.kpis,.choice{grid-template-columns:1fr}.tabs{display:none}}
+@media print{
+  body{background:#fff}
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block!important}
+  #printArea .paper{box-shadow:none;padding:0;max-width:none}
+  @page{size:A4;margin:2cm 2cm 2cm 3cm}
+}
+#printArea{display:none}
+
+</style>
+</head>
+<body>
+<noscript>Cần bật JavaScript để dùng ứng dụng.</noscript>
+<script>
+/* =====================================================================
+ * Kê khai TSTN — Lõi dữ liệu, mẫu biểu, rà soát, xuất Word
+ * © Lê Quang Trọng, đảo Phú Quý · 0909084181 · lequangtrong.c3ngoquyen@moet.edu.vn
+ * Miễn phí sử dụng. Cấm thương mại hoá, sửa đổi để phát hành lại khi chưa được tác giả đồng ý.
+ * Căn cứ: Luật PCTN 36/2018/QH14 (sửa đổi bởi Luật 59/2020/QH14, 81/2025/QH15, 132/2025/QH15);
+ *         Nghị định 164/2026/NĐ-CP ngày 15/5/2026 (Phụ lục mẫu bản kê khai);
+ *         Nghị định 161/2026/NĐ-CP (lương cơ sở 2.530.000đ từ 01/7/2026).
+ * ===================================================================== */
+(function (root) {
+'use strict';
+
+const APP = {
+  name: 'Kê khai TSTN',
+  version: '1.0.0',
+  build: '2026-11-22',
+  author: 'Lê Quang Trọng',
+  place: 'đảo Phú Quý',
+  phone: '0909084181',
+  email: 'lequangtrong.c3ngoquyen@moet.edu.vn',
+  updateUrl: 'https://tronglqngoquyen-dot.github.io/kekhai-tstn/version.json', // sửa theo tài khoản GitHub thực tế
+  homeUrl: 'https://tronglqngoquyen-dot.github.io/kekhai-tstn/',
+  legal: 'Mẫu theo Phụ lục Nghị định số 164/2026/NĐ-CP ngày 15/5/2026 của Chính phủ'
+};
+APP.copyright = `© ${new Date().getFullYear() < 2026 ? 2026 : new Date().getFullYear()} ${APP.author}, ${APP.place} · ${APP.phone} · ${APP.email}`;
+
+const NGUONG = 150_000_000;      // Điều 9 NĐ 164; Luật 132/2025
+const NGUONG_BO_SUNG = 1_000_000_000; // khoản 2 Điều 36 Luật PCTN (sửa đổi 2025)
+
+// Lương cơ sở theo giai đoạn (có thể sửa trong Cài đặt)
+const LUONG_CO_SO_MAC_DINH = [
+  { tu: '2023-07-01', den: '2024-06-30', muc: 1_800_000, cancu: 'NĐ 24/2023/NĐ-CP' },
+  { tu: '2024-07-01', den: '2026-06-30', muc: 2_340_000, cancu: 'NĐ 73/2024/NĐ-CP' },
+  { tu: '2026-07-01', den: '2099-12-31', muc: 2_530_000, cancu: 'NĐ 161/2026/NĐ-CP' }
+];
+
+const PHUONG_THUC = {
+  lan_dau: 'KÊ KHAI LẦN ĐẦU',
+  hang_nam: 'KÊ KHAI HẰNG NĂM',
+  bo_sung: 'KÊ KHAI BỔ SUNG',
+  can_bo: 'KÊ KHAI PHỤC VỤ CÔNG TÁC CÁN BỘ'
+};
+const PHUONG_THUC_TEN = {
+  lan_dau: 'Kê khai lần đầu', hang_nam: 'Kê khai hằng năm',
+  bo_sung: 'Kê khai bổ sung', can_bo: 'Kê khai phục vụ công tác cán bộ'
+};
+
+const DUNG_TEN = ['Người kê khai', 'Vợ/chồng', 'Con chưa thành niên', 'Chung vợ chồng', 'Đồng sở hữu với người khác', 'Đứng tên hộ người khác', 'Người khác đứng tên hộ'];
+
+// ---------------------------------------------------------------------
+// Định nghĩa các nhóm tài sản — bám đúng thứ tự, nhãn của Phụ lục NĐ 164
+// field types: text | area | num | money | date | select | fx (tiền có thể là ngoại tệ)
+// ---------------------------------------------------------------------
+const F = {
+  diaChi: { k: 'diaChi', l: 'Địa chỉ', hint: 'Ghi theo đơn vị hành chính sau sáp nhập (từ 01/7/2025): số nhà/thôn, xã/phường/đặc khu, tỉnh/thành phố' },
+  diaChiCu: { k: 'diaChiCu', l: 'Địa chỉ cũ ghi trên Giấy chứng nhận (nếu còn)', hint: 'Nếu Giấy chứng nhận còn ghi địa chỉ trước sáp nhập thì ghi thêm' },
+  dienTich: { k: 'dienTich', l: 'Diện tích (m²)', t: 'num', hint: 'Theo Giấy chứng nhận hoặc diện tích thực tế nếu chưa có Giấy chứng nhận' },
+  giaTri: { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money', unknown: true, hint: 'Giá trị tại thời điểm mua/nhận chuyển nhượng (gồm thuế, phí); tự xây = tổng chi phí; được cho/tặng/thừa kế = giá thị trường tại thời điểm nhận' },
+  gcn: { k: 'gcn', l: 'Giấy chứng nhận (số, tên người được cấp)', hint: 'Ghi số GCN và tên người được cấp/người đại diện; nếu chưa có ghi "chưa được cấp Giấy chứng nhận"' },
+  nguon: { k: 'nguon', l: 'Nguồn hình thành', t: 'area', hint: 'Tự mua, nhận chuyển nhượng; được cho/tặng/thừa kế; tự tạo lập... từ tiền tự có / tiền vay của ai / tiền được cho tặng...' },
+  tinhTrang: { k: 'tinhTrang', l: 'Tình trạng quản lý, sử dụng, sở hữu', t: 'area', hint: 'Đang sử dụng, cho thuê, kinh doanh, để không, thế chấp...; nếu nhờ người khác đứng tên/đứng tên hộ ghi rõ họ tên, số định danh của người đó' },
+  ghiChu: { k: 'ghiChu', l: 'Ghi chú', t: 'area' },
+  dungTen: { k: 'dungTen', l: 'Thuộc sở hữu/sử dụng của', t: 'select', opts: DUNG_TEN },
+  minhChung: { k: 'minhChung', l: 'Tài liệu minh chứng (nếu có)', hint: 'Hợp đồng, giấy chứng nhận, hoá đơn, sổ tiết kiệm, giấy vay...' },
+  thongTinKhac: { k: 'thongTinKhac', l: 'Thông tin khác (nếu có)', t: 'area' }
+};
+const STD_TAIL = [F.nguon, F.tinhTrang, F.ghiChu, F.dungTen];
+
+const GROUPS = [
+  { key: 'datO', sec: '1.1', parent: 'Quyền sử dụng đất', title: 'Đất ở', item: 'Thửa', ord: true,
+    fields: [F.diaChi, F.diaChiCu, F.dienTich, F.giaTri, F.gcn, ...STD_TAIL], threshold: 'none',
+    desc: 'Đất được sử dụng vào mục đích để ở; thửa đất nhiều mục đích có đất ở thì kê khai vào mục này. Kê khai cả đất chưa được cấp Giấy chứng nhận.' },
+  { key: 'datKhac', sec: '1.2', parent: 'Quyền sử dụng đất', title: 'Các loại đất khác', item: 'Thửa', ord: true,
+    fields: [{ k: 'loaiDat', l: 'Loại đất', hint: 'Đất trồng cây lâu năm, đất nông nghiệp, đất rừng sản xuất, đất thương mại dịch vụ...' }, F.diaChi, F.diaChiCu, F.dienTich, F.giaTri, F.gcn, ...STD_TAIL], threshold: 'none' },
+  { key: 'nhaO', sec: '2.1', parent: 'Nhà ở, công trình xây dựng', title: 'Nhà ở', item: 'Nhà', ord: true,
+    fields: [{ k: 'loaiNha', l: 'Loại nhà', t: 'select', opts: ['Nhà ở riêng lẻ', 'Căn hộ', 'Biệt thự'] }, F.diaChi, F.diaChiCu,
+      { k: 'dienTich', l: 'Diện tích sử dụng (m²)', t: 'num', hint: 'Tổng diện tích sàn xây dựng của tất cả các tầng (kể cả tầng hầm, tầng kỹ thuật, tầng áp mái, tum)' },
+      F.giaTri, { k: 'gcn', l: 'Giấy chứng nhận quyền sở hữu', hint: 'Số GCN, tên người được cấp; nếu chưa có ghi "chưa được cấp Giấy chứng nhận"' }, ...STD_TAIL], threshold: 'none' },
+  { key: 'congTrinh', sec: '2.2', parent: 'Nhà ở, công trình xây dựng', title: 'Công trình xây dựng khác', item: 'Công trình', ord: true,
+    fields: [{ k: 'ten', l: 'Tên công trình' }, F.diaChi, F.diaChiCu, F.dienTich, F.giaTri, { k: 'gcn', l: 'Giấy chứng nhận quyền sở hữu' }, ...STD_TAIL], threshold: 'none',
+    desc: 'Công trình xây dựng không phải nhà ở (nhà kho, nhà xưởng, ki-ốt...).' },
+  { key: 'cayLauNam', sec: '3.1', parent: 'Tài sản khác gắn liền với đất', title: 'Cây lâu năm', item: 'Loại cây', single: true,
+    fields: [{ k: 'loaiCay', l: 'Loại cây' }, { k: 'soLuong', l: 'Số lượng' }, F.giaTri, F.thongTinKhac, ...STD_TAIL], threshold: 'none',
+    desc: 'Cây trồng một lần, cho thu hoạch nhiều năm. Cây thuộc rừng sản xuất không ghi vào mục này.' },
+  { key: 'rung', sec: '3.2', parent: 'Tài sản khác gắn liền với đất', title: 'Rừng sản xuất', item: 'Rừng', single: true,
+    fields: [{ k: 'loaiRung', l: 'Loại rừng' }, F.dienTich, F.giaTri, F.thongTinKhac, ...STD_TAIL], threshold: 'none', desc: 'Rừng sản xuất là rừng trồng.' },
+  { key: 'vatKienTruc', sec: '3.3', parent: 'Tài sản khác gắn liền với đất', title: 'Vật kiến trúc khác gắn liền với đất', item: 'Vật kiến trúc', single: true,
+    fields: [{ k: 'tenGoi', l: 'Tên gọi' }, { k: 'soLuong', l: 'Số lượng' }, { k: 'donVi', l: 'Đơn vị' }, F.giaTri, F.thongTinKhac, ...STD_TAIL], threshold: 'none' },
+  { key: 'kimLoaiQuy', sec: '4', title: 'Vàng, kim cương, bạch kim và các kim loại quý, đá quý khác', item: 'Tài sản', ord: true,
+    fields: [{ k: 'ten', l: 'Tên tài sản', hint: 'Vật trang sức ghép nhiều loại (vàng đính kim cương...) kê khai cả vật, không tách riêng' },
+      { k: 'soLuong', l: 'Số lượng, đơn vị tính', hint: 'chỉ, lượng, gam, ki-lô-gam...' },
+      { k: 'giaTri', l: 'Tổng giá trị (đồng)', t: 'fx', hint: 'Mua bằng ngoại tệ thì quy đổi theo tỷ giá liên ngân hàng tại thời điểm sở hữu' },
+      F.thongTinKhac, ...STD_TAIL], threshold: 'perType' },
+  { key: 'tienMat', sec: '5.1', parent: 'Tiền', title: 'Tiền mặt', item: 'Khoản', fields: [{ k: 'giaTri', l: 'Số tiền (đồng)', t: 'fx' }, { k: 'tinhTrang', l: 'Tình trạng quản lý, sử dụng', t: 'area', hint: 'Ghi rõ số tiền thuộc sở hữu thực tế; các khoản đi mượn, vay, giữ hộ, quản lý hộ, ủy quyền (nếu có)' }, F.dungTen], threshold: 'money' },
+  { key: 'tienChoVay', sec: '5.2', parent: 'Tiền', title: 'Tiền cho vay', item: 'Khoản', fields: [{ k: 'giaTri', l: 'Số tiền (đồng)', t: 'fx' }, { k: 'benVay', l: 'Bên vay (họ tên/tổ chức)' }, F.minhChung, F.dungTen], threshold: 'money' },
+  { key: 'tienTraTruoc', sec: '5.3', parent: 'Tiền', title: 'Tiền trả trước', item: 'Khoản', fields: [{ k: 'giaTri', l: 'Số tiền (đồng)', t: 'fx' }, { k: 'noiDung', l: 'Nội dung trả trước' }, F.minhChung, F.dungTen], threshold: 'money' },
+  { key: 'taiKhoan', sec: '5.4', parent: 'Tiền', title: 'Tiền gửi — Tài khoản thanh toán', item: 'Tài khoản', fields: [{ k: 'soTK', l: 'Số tài khoản thanh toán' }, { k: 'toChuc', l: 'Tại đơn vị, tổ chức' }, { k: 'giaTri', l: 'Số dư tại thời điểm kê khai (đồng)', t: 'fx' }, F.dungTen], threshold: 'money' },
+  { key: 'soTietKiem', sec: '5.4', parent: 'Tiền', title: 'Tiền gửi — Tài khoản/sổ tiết kiệm', item: 'Sổ', fields: [{ k: 'soTK', l: 'Số tài khoản/số sổ tiết kiệm' }, { k: 'toChuc', l: 'Tại đơn vị, tổ chức' }, { k: 'giaTri', l: 'Số tiền (đồng)', t: 'fx' }, F.dungTen], threshold: 'money' },
+  { key: 'tienGuiKhac', sec: '5.4', parent: 'Tiền', title: 'Các loại tiền gửi khác', item: 'Khoản', fields: [{ k: 'moTa', l: 'Loại tiền gửi' }, { k: 'giaTri', l: 'Tổng số tiền (đồng)', t: 'fx' }, F.minhChung, F.dungTen], threshold: 'money' },
+  { key: 'coPhieu', sec: '6.1', parent: 'Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác', title: 'Cổ phiếu', item: 'Mã', fields: [{ k: 'ten', l: 'Tên cổ phiếu' }, { k: 'soLuong', l: 'Số lượng' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money', hint: 'Giá mua tại thời điểm sở hữu hoặc giá trị bình quân tại thời điểm sở hữu' }, F.dungTen], threshold: 'securities' },
+  { key: 'traiPhieu', sec: '6.2', parent: 'Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác', title: 'Trái phiếu', item: 'Mã', fields: [{ k: 'ten', l: 'Tên trái phiếu' }, { k: 'soLuong', l: 'Số lượng' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money' }, F.dungTen], threshold: 'securities' },
+  { key: 'vonGop', sec: '6.3', parent: 'Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác', title: 'Vốn góp', item: 'Khoản', fields: [{ k: 'hinhThuc', l: 'Hình thức, loại vốn góp', hint: 'Tiền, giấy tờ có giá, tài sản hữu hình, tài sản vô hình... và nơi góp vốn' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money', hint: 'Số tiền hoặc giá trị do thoả thuận tại thời điểm góp vốn' }, F.minhChung, F.dungTen], threshold: 'securities' },
+  { key: 'giayToCoGia', sec: '6.4', parent: 'Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác', title: 'Các loại giấy tờ có giá khác', item: 'Giấy tờ', fields: [{ k: 'ten', l: 'Tên giấy tờ có giá', hint: 'Hối phiếu, séc, kỳ phiếu, tín phiếu, hợp đồng bảo hiểm...' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money' }, F.minhChung, F.dungTen], threshold: 'securities' },
+  { key: 'tsDangKy', sec: '7.1', parent: 'Tài sản khác', title: 'Tài sản phải đăng ký sử dụng và được cấp giấy đăng ký', item: 'Tài sản', fields: [{ k: 'ten', l: 'Tên tài sản', hint: 'Ô tô, mô tô, xe gắn máy, tàu thuyền, máy xúc...' }, { k: 'soDangKy', l: 'Số đăng ký' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money', hint: 'Giá trị tại thời điểm sở hữu, xác lập hoặc định giá' }, F.thongTinKhac, F.dungTen], threshold: 'perType',
+    desc: 'Chỉ kê khai tài sản có giá trị từ 150 triệu đồng trở lên.' },
+  { key: 'tsKhac', sec: '7.2', parent: 'Tài sản khác', title: 'Tài sản khác (tài sản số, tài sản đấu giá, quyền SHTT, đồ mỹ nghệ, đồ thờ cúng, bàn ghế, cây cảnh, tranh ảnh, cổ vật...)', item: 'Tài sản', fields: [{ k: 'loai', l: 'Loại tài sản', hint: 'Bộ tài sản ghép từ nhiều món nhỏ nhưng tổng giá trị trên 150 triệu vẫn phải kê khai cả bộ' }, { k: 'soLuong', l: 'Số lượng' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'money' }, F.thongTinKhac, F.minhChung, F.dungTen], threshold: 'perType' },
+  { key: 'tsNuocNgoai', sec: '8', title: 'Tài sản ở nước ngoài', item: 'Tài sản', fields: [{ k: 'quocGia', l: 'Nước nơi có tài sản' }, { k: 'loai', l: 'Loại tài sản (như mục 1 đến 7)' }, { k: 'moTa', l: 'Mô tả chi tiết', t: 'area' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'fx' }, F.dungTen], threshold: 'none' },
+  { key: 'tkNuocNgoai', sec: '9', title: 'Tài khoản ở nước ngoài', item: 'Tài khoản', fields: [{ k: 'chuTK', l: 'Tên chủ tài khoản' }, { k: 'soTK', l: 'Số tài khoản' }, { k: 'nganHang', l: 'Tên ngân hàng, chi nhánh, tổ chức nơi mở tài khoản', hint: 'Kể cả tài khoản chứng khoán, sàn vàng, ví điện tử ở nước ngoài' }], threshold: 'none', novalue: true },
+  { key: 'no', sec: '11', title: 'Các khoản nợ có giá trị từ 150 triệu đồng trở lên', item: 'Khoản nợ', fields: [{ k: 'chuNo', l: 'Nợ của tổ chức/cá nhân (bên cho vay)' }, { k: 'noiDung', l: 'Số lượng, chủng loại', hint: 'Nợ bằng tiền, bằng hiện vật...' }, { k: 'giaTri', l: 'Giá trị (đồng)', t: 'fx' }, F.minhChung, F.dungTen], threshold: 'perItem', liability: true }
+];
+const GROUP = Object.fromEntries(GROUPS.map(g => [g.key, g]));
+
+const ORD = ['nhất', 'hai', 'ba', 'tư', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
+const ordName = i => i < ORD.length ? ORD[i] : String(i + 1);
+
+// ---------------------------------------------------------------------
+// Tiện ích
+// ---------------------------------------------------------------------
+const uid = () => (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)).toUpperCase();
+// Đọc số kiểu Việt Nam: "1.234.567" (dấu chấm phân nghìn), "4,98" hoặc "4.98" (thập phân)
+const num = v => {
+  if (v === null || v === undefined || v === '') return 0;
+  if (typeof v === 'number') return isFinite(v) ? v : 0;
+  let s = String(v).trim().replace(/\s/g, '').replace(/[^\d\-.,]/g, '');
+  if (!s) return 0;
+  const hasDot = s.includes('.'), hasCom = s.includes(',');
+  if (hasDot && hasCom) { s = s.lastIndexOf(',') > s.lastIndexOf('.') ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, ''); }
+  else if (hasCom) { s = /^-?\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.'); }
+  else if (hasDot) { if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); }
+  const n = Number(s); return isFinite(n) ? n : 0;
+};
+const fmtMoney = n => { n = Math.round(Number(n) || 0); return n.toLocaleString('vi-VN').replace(/,/g, '.') ; };
+const fmtVND = n => fmtMoney(n) + ' đồng';
+const pad = n => String(n).padStart(2, '0');
+const fmtDate = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00'); if (isNaN(d)) return s; return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`; };
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const clone = o => JSON.parse(JSON.stringify(o));
+const blank = v => v === undefined || v === null || String(v).trim() === '';
+
+// Đọc số thành chữ (tiếng Việt) — hỗ trợ người dùng kiểm tra số tiền
+function docSo(n) {
+  n = Math.round(Math.abs(Number(n) || 0));
+  if (n === 0) return 'không đồng';
+  const cs = ['không', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+  const doc3 = (x, full) => {
+    const tr = Math.floor(x / 100), ch = Math.floor((x % 100) / 10), dv = x % 10; let s = [];
+    if (full || tr) s.push(cs[tr] + ' trăm');
+    if (ch === 0 && dv) { if (full || tr) s.push('lẻ'); }
+    else if (ch === 1) s.push('mười');
+    else if (ch > 1) s.push(cs[ch] + ' mươi');
+    if (dv) { if (dv === 1 && ch > 1) s.push('mốt'); else if (dv === 5 && ch > 0) s.push('lăm'); else if (dv === 4 && ch > 1) s.push('tư'); else s.push(cs[dv]); }
+    return s.join(' ');
+  };
+  const units = ['', ' nghìn', ' triệu', ' tỷ', ' nghìn tỷ', ' triệu tỷ'];
+  const parts = []; let i = 0;
+  while (n > 0) { parts.push(n % 1000); n = Math.floor(n / 1000); i++; }
+  let out = [];
+  for (let j = parts.length - 1; j >= 0; j--) {
+    if (parts[j] === 0) continue;
+    out.push(doc3(parts[j], j < parts.length - 1) + units[j]);
+  }
+  let s = out.join(' ').replace(/\s+/g, ' ').trim();
+  return s.charAt(0).toUpperCase() + s.slice(1) + ' đồng';
+}
+
+// ---------------------------------------------------------------------
+// Mô hình dữ liệu
+// ---------------------------------------------------------------------
+function emptyPerson() {
+  return { hoTen: '', ngaySinh: '', queQuan: '', noiThuongTru: '', noiOHienNay: '', chucVu: '', heSoPhuCap: '', coQuan: '', soDinhDanh: '', ngayCap: '', noiCap: '', soDienThoai: '' };
+}
+function emptySpouse() {
+  return { hoTen: '', ngaySinh: '', queQuan: '', noiThuongTru: '', noiOHienNay: '', ngheNghiep: '', heSoPhuCap: '', noiLamViec: '', soDinhDanh: '', ngayCap: '', noiCap: '', soDienThoai: '' };
+}
+function emptyChild() { return { id: uid(), hoTen: '', ngaySinh: '', noiThuongTru: '', noiOHienNay: '', soDinhDanh: '', ngayCap: '', noiCap: '' }; }
+function emptyIncomeCalc() {
+  return { heSoLuong: '', heSoPCCV: '', heSoTNVK: '', pctUuDai: '', pctThamNien: '', heSoKhuVuc: '', heSoKhac: '', khoanThangKhac: '', thuong: '', ghiChu: '' };
+}
+
+function newDecl(opts = {}) {
+  const ts = {}; GROUPS.forEach(g => ts[g.key] = []);
+  return {
+    id: uid(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+    phuongThuc: opts.phuongThuc || 'hang_nam', nam: opts.nam || new Date().getFullYear(),
+    ngayChot: opts.ngayChot || '', ngayKeKhai: '', ngayKeKhaiTruoc: '', diaDanh: '',
+    tenCoQuanDauTrang: '', quocHieu: 'nha_nuoc',
+    nguoi: emptyPerson(), coVoChong: false, voChong: emptySpouse(), con: [],
+    ts,
+    tienKhongKeKhaiLyDo: '',
+    thuNhap: { ban: { luong: '', khac: '', khacGhiChu: '' }, voChong: { luong: '', khac: '', khacGhiChu: '' }, con: '', conGhiChu: '', chung: '', chungGhiChu: '', calc: emptyIncomeCalc(), calcVoChong: emptyIncomeCalc() },
+    bienDong: { tang: [], giam: [] },
+    thayDoi: { thongTinChung: '', taiSan: '' },
+    chiTieuUocTinh: '',
+    review: { status: 'nhap', comments: [] }
+  };
+}
+
+function newHoSo(label) {
+  return { id: uid(), label: label || 'Hồ sơ mới', createdAt: new Date().toISOString(), decls: [] };
+}
+
+function newItem(groupKey) {
+  const g = GROUP[groupKey]; const it = { id: uid() };
+  g.fields.forEach(f => { it[f.k] = f.t === 'select' ? (f.k === 'dungTen' ? 'Người kê khai' : f.opts[0]) : ''; if (f.t === 'fx') { it[f.k + '_cur'] = 'VND'; it[f.k + '_fx'] = ''; it[f.k + '_rate'] = ''; } if (f.unknown) { it[f.k + '_unk'] = false; it[f.k + '_unkReason'] = ''; } });
+  return it;
+}
+
+// Giá trị VND của trường tiền trong một mục
+function itemValue(g, it) {
+  if (g.novalue) return 0;
+  const f = g.fields.find(x => x.k === 'giaTri');
+  if (!f) return 0;
+  if (f.t === 'fx' && it.giaTri_cur && it.giaTri_cur !== 'VND') {
+    const v = num(it.giaTri_fx) * num(it.giaTri_rate);
+    return v || num(it.giaTri);
+  }
+  if (it.giaTri_unk) return 0;
+  return num(it.giaTri);
+}
+
+function groupTotal(decl, keys) { return keys.reduce((s, k) => s + (decl.ts[k] || []).reduce((a, it) => a + itemValue(GROUP[k], it), 0), 0); }
+const MONEY_KEYS = ['tienMat', 'tienChoVay', 'tienTraTruoc', 'taiKhoan', 'soTietKiem', 'tienGuiKhac'];
+const SEC_KEYS = ['coPhieu', 'traiPhieu', 'vonGop', 'giayToCoGia'];
+
+function incomeTotals(decl) {
+  const t = decl.thuNhap;
+  const ban = num(t.ban.luong) + num(t.ban.khac);
+  const vc = decl.coVoChong ? num(t.voChong.luong) + num(t.voChong.khac) : 0;
+  const con = num(t.con), chung = num(t.chung);
+  return { ban, vc, con, chung, tong: ban + vc + con + chung };
+}
+
+function netWorth(decl) {
+  let assets = 0, liab = 0;
+  GROUPS.forEach(g => (decl.ts[g.key] || []).forEach(it => { const v = itemValue(g, it); if (g.liability) liab += v; else assets += v; }));
+  return { assets, liab, net: assets - liab };
+}
+
+// ---------------------------------------------------------------------
+// Trợ lý tính thu nhập từ lương theo giai đoạn lương cơ sở
+// ---------------------------------------------------------------------
+function monthsBetween(tu, den) {
+  // số tháng (có lẻ theo ngày) giữa 2 ngày, tính cả ngày đầu và ngày cuối
+  const a = new Date(tu + 'T00:00:00'), b = new Date(den + 'T00:00:00');
+  if (isNaN(a) || isNaN(b) || b < a) return 0;
+  let m = 0, cur = new Date(a);
+  while (cur <= b) {
+    const y = cur.getFullYear(), mo = cur.getMonth();
+    const dim = new Date(y, mo + 1, 0).getDate();
+    const endOfMonth = new Date(y, mo, dim);
+    const last = endOfMonth < b ? endOfMonth : b;
+    const days = Math.round((last - cur) / 86400000) + 1;
+    m += days / dim;
+    cur = new Date(y, mo + 1, 1);
+  }
+  return m;
+}
+function calcSalary(c, tu, den, lcsTable) {
+  lcsTable = lcsTable || LUONG_CO_SO_MAC_DINH;
+  const base = num(c.heSoLuong) + num(c.heSoPCCV) + num(c.heSoTNVK);
+  const pct = (num(c.pctUuDai) + num(c.pctThamNien)) / 100;
+  const hs = base * (1 + pct) + num(c.heSoKhuVuc) + num(c.heSoKhac);
+  const rows = []; let total = 0;
+  if (!tu || !den || hs <= 0) return { rows, total: num(c.thuong), hs };
+  lcsTable.forEach(p => {
+    const s = tu > p.tu ? tu : p.tu, e = den < p.den ? den : p.den;
+    if (s > e) return;
+    const m = monthsBetween(s, e);
+    const monthly = hs * p.muc + num(c.khoanThangKhac);
+    const amount = Math.round(monthly * m);
+    rows.push({ tu: s, den: e, muc: p.muc, cancu: p.cancu, thang: m, monthly: Math.round(monthly), amount });
+    total += amount;
+  });
+  total += num(c.thuong);
+  return { rows, total, hs };
+}
+
+function incomePeriod(decl, prevDecl) {
+  if (decl.phuongThuc === 'lan_dau') return null;
+  const prev = prevDecl ? (prevDecl.ngayKeKhai || prevDecl.ngayChot) : decl.ngayKeKhaiTruoc;
+  const tu = prev ? addDays(prev, 1) : '';
+  const den = decl.ngayKeKhai || decl.ngayChot || '';
+  return { tu, den, prev };
+}
+
+// ---------------------------------------------------------------------
+// So sánh với kỳ liền trước → gợi ý Mục III (biến động)
+// ---------------------------------------------------------------------
+function describeItem(g, it) {
+  const main = it.diaChi || it.ten || it.tenGoi || it.loai || it.loaiCay || it.loaiRung || it.loaiDat || it.soTK || it.hinhThuc || it.moTa || it.chuNo || it.benVay || it.noiDung || '';
+  return `${g.title}${main ? ': ' + main : ''}`;
+}
+function compareDecls(cur, prev) {
+  const tang = [], giam = [];
+  if (!prev) return { tang, giam };
+  const push = (arr, key, moTa, giaTri) => arr.push({ key, moTa, giaTri: Math.abs(Math.round(giaTri)) });
+  // Nhóm tính theo từng mục (BĐS, kim loại quý, tài sản khác, nợ, nước ngoài)
+  GROUPS.forEach(g => {
+    if (MONEY_KEYS.includes(g.key) || SEC_KEYS.includes(g.key)) return;
+    const pm = Object.fromEntries((prev.ts[g.key] || []).map(it => [it.id, it]));
+    const cm = Object.fromEntries((cur.ts[g.key] || []).map(it => [it.id, it]));
+    Object.values(cm).forEach(it => {
+      const v = itemValue(g, it), p = pm[it.id];
+      if (!p) push(g.liability ? giam : tang, g.key + ':' + it.id, (g.liability ? 'Phát sinh khoản nợ mới — ' : 'Tài sản mới — ') + describeItem(g, it), v);
+      else {
+        const pv = itemValue(g, p);
+        if (v !== pv) push((v > pv) !== !!g.liability ? tang : giam, g.key + ':' + it.id, (g.liability ? 'Thay đổi khoản nợ — ' : 'Thay đổi giá trị — ') + describeItem(g, it) + ` (từ ${fmtMoney(pv)} thành ${fmtMoney(v)})`, v - pv);
+      }
+    });
+    Object.values(pm).forEach(p => {
+      if (!cm[p.id]) push(g.liability ? tang : giam, g.key + ':' + p.id, (g.liability ? 'Đã trả hết khoản nợ — ' : 'Không còn tài sản — ') + describeItem(g, p), itemValue(g, p));
+    });
+  });
+  // Tiền và giấy tờ có giá: so tổng nhóm
+  [[MONEY_KEYS, 'Tiền (tiền mặt, cho vay, trả trước, tiền gửi)', 'tien'], [SEC_KEYS, 'Cổ phiếu, trái phiếu, vốn góp, giấy tờ có giá', 'ck']].forEach(([keys, name, key]) => {
+    const a = groupTotal(cur, keys), b = groupTotal(prev, keys);
+    if (a !== b) push(a > b ? tang : giam, key, `${name}: từ ${fmtMoney(b)} thành ${fmtMoney(a)} đồng`, a - b);
+  });
+  return { tang, giam };
+}
+
+function applyBienDongSuggest(decl, prev) {
+  const { tang, giam } = compareDecls(decl, prev);
+  const merge = (oldArr, sug) => {
+    const keep = oldArr.filter(x => !x.auto);
+    const byKey = Object.fromEntries(oldArr.filter(x => x.auto).map(x => [x.key, x]));
+    return [...sug.map(s => ({ id: (byKey[s.key] || {}).id || uid(), auto: true, key: s.key, moTa: s.moTa, giaTri: s.giaTri, giaiTrinh: (byKey[s.key] || {}).giaiTrinh || '', minhChung: (byKey[s.key] || {}).minhChung || '' })), ...keep];
+  };
+  decl.bienDong.tang = merge(decl.bienDong.tang, tang);
+  decl.bienDong.giam = merge(decl.bienDong.giam, giam);
+  return decl;
+}
+
+// Tạo kỳ mới từ kỳ trước — giữ nguyên id tài sản để so sánh biến động
+function rollForward(prev, opts = {}) {
+  const d = clone(prev);
+  d.id = uid(); d.createdAt = d.updatedAt = new Date().toISOString();
+  d.phuongThuc = opts.phuongThuc || 'hang_nam';
+  d.nam = opts.nam || (Number(prev.nam) + 1);
+  d.ngayChot = opts.ngayChot || ''; d.ngayKeKhai = '';
+  d.ngayKeKhaiTruoc = prev.ngayKeKhai || prev.ngayChot || '';
+  d.prevId = prev.id;
+  d.thuNhap.ban.luong = d.thuNhap.ban.khac = d.thuNhap.voChong.luong = d.thuNhap.voChong.khac = d.thuNhap.con = d.thuNhap.chung = '';
+  d.thuNhap.ban.khacGhiChu = d.thuNhap.voChong.khacGhiChu = d.thuNhap.conGhiChu = d.thuNhap.chungGhiChu = '';
+  d.thuNhap.calc.thuong = ''; if (d.thuNhap.calcVoChong) d.thuNhap.calcVoChong.thuong = '';
+  d.bienDong = { tang: [], giam: [] };
+  d.thayDoi = { thongTinChung: '', taiSan: '' };
+  d.review = { status: 'nhap', comments: [] };
+  d.chiTieuUocTinh = '';
+  return d;
+}
+
+// Đảm bảo dữ liệu cũ/nhập từ file có đủ trường
+function normalizeDecl(d) {
+  const base = newDecl();
+  const out = Object.assign(base, d);
+  out.nguoi = Object.assign(emptyPerson(), d.nguoi || {});
+  out.voChong = Object.assign(emptySpouse(), d.voChong || {});
+  out.con = (d.con || []).map(c => Object.assign(emptyChild(), c));
+  out.ts = out.ts || {}; GROUPS.forEach(g => { out.ts[g.key] = (out.ts[g.key] || []).map(it => Object.assign(newItem(g.key), it)); });
+  out.thuNhap = Object.assign(newDecl().thuNhap, d.thuNhap || {});
+  out.thuNhap.calc = Object.assign(emptyIncomeCalc(), out.thuNhap.calc || {});
+  out.thuNhap.calcVoChong = Object.assign(emptyIncomeCalc(), out.thuNhap.calcVoChong || {});
+  out.bienDong = Object.assign({ tang: [], giam: [] }, d.bienDong || {});
+  out.thayDoi = Object.assign({ thongTinChung: '', taiSan: '' }, d.thayDoi || {});
+  out.review = Object.assign({ status: 'nhap', comments: [] }, d.review || {});
+  return out;
+}
+
+// ---------------------------------------------------------------------
+// BỘ RÀ SOÁT — trả về danh sách {level: 'loi'|'canh_bao'|'goi_y', sec, msg}
+// ---------------------------------------------------------------------
+const OLD_ADMIN = /\b(huyện|quận|thị xã)\b/i;
+function ageAt(birthISO, atISO) {
+  if (!birthISO || !atISO) return null;
+  const b = new Date(birthISO + 'T00:00:00'), a = new Date(atISO + 'T00:00:00');
+  let age = a.getFullYear() - b.getFullYear();
+  if (a.getMonth() < b.getMonth() || (a.getMonth() === b.getMonth() && a.getDate() < b.getDate())) age--;
+  return age;
+}
+
+function review(decl, prev, opts = {}) {
+  const R = []; const add = (level, sec, msg, nav) => R.push({ level, sec, msg, nav: nav || sec });
+  const lanDau = decl.phuongThuc === 'lan_dau';
+  const at = decl.ngayChot || decl.ngayKeKhai || todayISO();
+
+  // --- Thông tin kỳ kê khai
+  if (blank(decl.ngayChot)) add('loi', 'Kỳ kê khai', 'Chưa ghi ngày chốt thông tin, dữ liệu về tài sản, thu nhập (chú thích 2 của mẫu).', 'ky');
+  if (decl.ngayKeKhai && decl.ngayChot && decl.ngayKeKhai < decl.ngayChot) add('loi', 'Kỳ kê khai', 'Ngày hoàn thành kê khai đang sớm hơn ngày chốt thông tin.', 'ky');
+  if (blank(decl.tenCoQuanDauTrang)) add('canh_bao', 'Kỳ kê khai', 'Chưa ghi tên cơ quan, đơn vị ở góc trên bên trái bản kê khai.', 'ky');
+  if (decl.phuongThuc === 'hang_nam' && decl.ngayKeKhai) {
+    const y = Number(decl.ngayKeKhai.slice(0, 4)), md = decl.ngayKeKhai.slice(5);
+    if (md > '12-31' || y !== Number(decl.nam)) add('canh_bao', 'Kỳ kê khai', `Kê khai hằng năm phải hoàn thành trước ngày 31/12 của năm ${decl.nam}; kiểm tra lại năm kê khai/ngày hoàn thành.`, 'ky');
+  }
+  if (opts.hanNop && decl.ngayKeKhai && decl.ngayKeKhai > opts.hanNop) add('canh_bao', 'Kỳ kê khai', `Ngày hoàn thành (${fmtDate(decl.ngayKeKhai)}) muộn hơn hạn nộp đã cài đặt (${fmtDate(opts.hanNop)}).`, 'ky');
+
+  // --- I.1 Người kê khai
+  const p = decl.nguoi;
+  [['hoTen', 'Họ và tên'], ['ngaySinh', 'Ngày, tháng, năm sinh'], ['chucVu', 'Chức vụ/chức danh'], ['coQuan', 'Cơ quan, đơn vị công tác'], ['soDinhDanh', 'Số thẻ căn cước/CCCD/Số định danh cá nhân'], ['noiThuongTru', 'Nơi thường trú'], ['noiOHienNay', 'Nơi ở hiện nay'], ['queQuan', 'Quê quán']].forEach(([k, l]) => {
+    if (blank(p[k])) add('loi', 'I.1 Người kê khai', `Chưa ghi "${l}".`, 'nguoi');
+  });
+  const checkId = (v, who, nav) => {
+    if (blank(v)) return;
+    const s = String(v).replace(/\s/g, '');
+    if (!/^\d{12}$/.test(s)) add('canh_bao', who, `Số định danh/căn cước "${v}" không phải 12 chữ số — kiểm tra lại (CMND 9 số cũ không còn dùng).`, nav);
+  };
+  checkId(p.soDinhDanh, 'I.1 Người kê khai', 'nguoi');
+  if (!blank(p.soDinhDanh) && (blank(p.ngayCap) || blank(p.noiCap))) add('loi', 'I.1 Người kê khai', 'Thiếu ngày cấp hoặc nơi cấp thẻ căn cước/CCCD (chú thích 3).', 'nguoi');
+  if (p.heSoPhuCap === '' && /trưởng|phó|giám đốc|hiệu trưởng|chủ tịch|bí thư/i.test(p.chucVu || '')) add('canh_bao', 'I.1 Người kê khai', 'Có chức vụ lãnh đạo nhưng chưa ghi hệ số phụ cấp chức vụ.', 'nguoi');
+  [['noiThuongTru', 'Nơi thường trú'], ['noiOHienNay', 'Nơi ở hiện nay']].forEach(([k, l]) => { if (OLD_ADMIN.test(p[k] || '')) add('canh_bao', 'I.1 Người kê khai', `${l} còn ghi cấp huyện/quận/thị xã — từ 01/7/2025 đã bỏ cấp huyện, nên ghi theo đơn vị hành chính mới (xã/phường/đặc khu, tỉnh/thành phố).`, 'nguoi'); });
+
+  // --- I.2 Vợ/chồng
+  if (decl.coVoChong) {
+    const v = decl.voChong;
+    [['hoTen', 'Họ và tên'], ['ngaySinh', 'Ngày sinh'], ['ngheNghiep', 'Chức vụ/nghề nghiệp, công việc đang làm'], ['noiLamViec', 'Cơ quan, đơn vị công tác, nơi làm việc'], ['soDinhDanh', 'Số định danh/căn cước'], ['noiThuongTru', 'Nơi thường trú']].forEach(([k, l]) => { if (blank(v[k])) add('loi', 'I.2 Vợ/chồng', `Chưa ghi "${l}" của vợ/chồng.`, 'vochong'); });
+    checkId(v.soDinhDanh, 'I.2 Vợ/chồng', 'vochong');
+    if (!blank(v.soDinhDanh) && (blank(v.ngayCap) || blank(v.noiCap))) add('loi', 'I.2 Vợ/chồng', 'Thiếu ngày cấp hoặc nơi cấp căn cước của vợ/chồng.', 'vochong');
+  }
+  // --- I.3 Con chưa thành niên
+  decl.con.forEach((c, i) => {
+    const who = `I.3 Con thứ ${ordName(i)}`;
+    if (blank(c.hoTen)) add('loi', who, 'Chưa ghi họ tên con.', 'con');
+    if (blank(c.soDinhDanh)) add('loi', who, 'Chưa ghi số định danh cá nhân của con (trẻ em đã được cấp số định danh từ khi đăng ký khai sinh).', 'con');
+    const age = ageAt(c.ngaySinh, at);
+    if (age !== null && age >= 18) add('canh_bao', who, `${c.hoTen || 'Người con'} đã đủ ${age} tuổi tại ngày chốt — không còn là con chưa thành niên, không kê khai tại mục này (ghi vào Mục IV nếu có thay đổi so với kỳ trước).`, 'con');
+    if (blank(c.ngaySinh)) add('goi_y', who, 'Nên ghi ngày sinh để ứng dụng kiểm tra tuổi chưa thành niên.', 'con');
+  });
+
+  // --- II. Tài sản
+  GROUPS.forEach(g => {
+    const items = decl.ts[g.key] || [];
+    const secName = `II.${g.sec} ${g.title}`;
+    items.forEach((it, i) => {
+      const who = `${secName} — ${g.item} thứ ${ordName(i)}`;
+      const v = itemValue(g, it);
+      const gf = g.fields.find(f => f.k === 'giaTri');
+      if (gf && !g.novalue) {
+        if (it.giaTri_unk) { if (blank(it.giaTri_unkReason)) add('loi', who, 'Đã chọn "không xác định được giá trị" nhưng chưa ghi rõ lý do (chú thích 10).', g.key); }
+        else if (v <= 0) add('loi', who, 'Chưa ghi giá trị. Nếu không xác định được, đánh dấu "Không xác định được giá trị" và ghi lý do.', g.key);
+        if (gf.t === 'fx' && it.giaTri_cur && it.giaTri_cur !== 'VND' && (num(it.giaTri_fx) <= 0 || num(it.giaTri_rate) <= 0)) add('loi', who, `Tài sản bằng ${it.giaTri_cur}: phải ghi số lượng ngoại tệ và tỷ giá liên ngân hàng tại thời điểm sở hữu để quy đổi ra đồng.`, g.key);
+      }
+      if (g.fields.some(f => f.k === 'diaChi')) {
+        if (blank(it.diaChi)) add('loi', who, 'Chưa ghi địa chỉ.', g.key);
+        else if (OLD_ADMIN.test(it.diaChi)) add('canh_bao', who, 'Địa chỉ còn cấp huyện/quận/thị xã — ghi theo đơn vị hành chính sau sáp nhập; địa chỉ cũ trên Giấy chứng nhận ghi ở ô "Địa chỉ cũ".', g.key);
+      }
+      if (g.fields.some(f => f.k === 'dienTich') && num(it.dienTich) <= 0) add('loi', who, 'Chưa ghi diện tích (m²).', g.key);
+      if (g.fields.some(f => f.k === 'gcn') && blank(it.gcn)) add('loi', who, 'Chưa ghi Giấy chứng nhận. Nếu chưa có thì ghi "chưa được cấp Giấy chứng nhận".', g.key);
+      if (g.fields.some(f => f.k === 'nguon') && blank(it.nguon)) add('loi', who, 'Chưa ghi nguồn hình thành tài sản (chú thích 12).', g.key);
+      if (g.fields.some(f => f.k === 'tinhTrang') && blank(it.tinhTrang) && g.fields.some(f => f.k === 'nguon')) add('canh_bao', who, 'Chưa ghi tình trạng quản lý, sử dụng, sở hữu.', g.key);
+      if (/Đứng tên hộ|Người khác đứng tên hộ/.test(it.dungTen || '') && !/\d{9,12}/.test((it.tinhTrang || '') + (it.ghiChu || ''))) add('loi', who, 'Tài sản nhờ người khác đứng tên/đứng tên hộ: phải ghi rõ họ tên và số định danh/căn cước của người đó trong "Tình trạng".', g.key);
+      if (g.threshold === 'perType' && !it.giaTri_unk && v > 0 && v < NGUONG) add('goi_y', who, `Giá trị ${fmtMoney(v)} đồng dưới ngưỡng 150 triệu — không bắt buộc kê khai (trừ khi gộp cùng loại/cùng bộ vượt ngưỡng).`, g.key);
+      if (g.threshold === 'perItem' && v > 0 && v < NGUONG) add('goi_y', who, `Khoản nợ ${fmtMoney(v)} đồng dưới 150 triệu — không bắt buộc kê khai.`, g.key);
+      if (g.key === 'tkNuocNgoai' && (blank(it.soTK) || blank(it.nganHang))) add('loi', who, 'Thiếu số tài khoản hoặc tên ngân hàng/tổ chức nơi mở tài khoản.', g.key);
+      if (g.key === 'tsNuocNgoai' && blank(it.quocGia)) add('loi', who, 'Phải nêu rõ tài sản đang ở nước nào (chú thích 31).', g.key);
+      if (['taiKhoan', 'soTietKiem'].includes(g.key) && (blank(it.soTK) || blank(it.toChuc))) add('loi', who, 'Thiếu số tài khoản/số sổ hoặc tên tổ chức nhận tiền gửi.', g.key);
+    });
+  });
+  // Ngưỡng theo nhóm
+  const tien = groupTotal(decl, MONEY_KEYS);
+  if (tien > 0 && tien < NGUONG) add('goi_y', 'II.5 Tiền', `Tổng tiền ${fmtMoney(tien)} đồng dưới ngưỡng 150 triệu — không bắt buộc kê khai; khi xuất, mục 5 sẽ ghi "Không có" trừ khi bật "Vẫn kê khai dù dưới ngưỡng".`, 'tienMat');
+  const ck = groupTotal(decl, SEC_KEYS);
+  if (ck > 0 && ck < NGUONG) add('goi_y', 'II.6 Cổ phiếu, trái phiếu...', `Tổng giá trị ${fmtMoney(ck)} đồng dưới ngưỡng 150 triệu — không bắt buộc kê khai.`, 'coPhieu');
+  // Kim loại quý: gộp theo loại (tên) vượt ngưỡng
+  const klq = {}; (decl.ts.kimLoaiQuy || []).forEach(it => { const k = (it.ten || '').trim().toLowerCase().split(/\s+/)[0] || '?'; klq[k] = (klq[k] || 0) + itemValue(GROUP.kimLoaiQuy, it); });
+  Object.entries(klq).forEach(([k, v]) => { if (v >= NGUONG && (decl.ts.kimLoaiQuy.filter(it => ((it.ten || '').trim().toLowerCase().split(/\s+/)[0] || '?') === k).length > 1)) add('goi_y', 'II.4 Kim loại quý, đá quý', `Các tài sản loại "${k}" cộng lại ${fmtMoney(v)} đồng (≥150 triệu) — phải kê khai đầy đủ tất cả.`, 'kimLoaiQuy'); });
+  // Tiền: phân biệt tiền sở hữu thực tế
+  (decl.ts.tienMat || []).forEach((it, i) => { if (itemValue(GROUP.tienMat, it) >= NGUONG && blank(it.tinhTrang)) add('canh_bao', 'II.5.1 Tiền mặt', 'Nên ghi rõ số tiền thuộc sở hữu thực tế và các khoản giữ hộ, vay mượn (chú thích 21).', 'tienMat'); });
+  if (!decl.coVoChong && GROUPS.some(g => (decl.ts[g.key] || []).some(it => /Vợ\/chồng|Chung vợ chồng/.test(it.dungTen || '')))) add('loi', 'I.2 Vợ/chồng', 'Có tài sản ghi thuộc vợ/chồng nhưng chưa khai thông tin vợ/chồng.', 'vochong');
+  if (!decl.con.length && GROUPS.some(g => (decl.ts[g.key] || []).some(it => /Con chưa thành niên/.test(it.dungTen || '')))) add('loi', 'I.3 Con chưa thành niên', 'Có tài sản ghi thuộc con chưa thành niên nhưng chưa khai thông tin con.', 'con');
+
+  // --- 10. Thu nhập
+  const inc = incomeTotals(decl);
+  if (!lanDau) {
+    const per = incomePeriod(decl, prev);
+    if (!per || !per.tu) add('loi', 'II.10 Tổng thu nhập', 'Chưa xác định được kỳ tính thu nhập: cần ngày kê khai của lần liền trước (thu nhập tính từ ngày kế tiếp sau ngày kê khai lần trước đến ngày kê khai lần này — chú thích 33).', 'thunhap');
+    if (inc.ban <= 0) add('loi', 'II.10 Tổng thu nhập', 'Chưa kê khai thu nhập của người kê khai giữa hai lần kê khai.', 'thunhap');
+    if (decl.coVoChong && inc.vc <= 0) add('canh_bao', 'II.10 Tổng thu nhập', 'Chưa kê khai thu nhập của vợ/chồng (nếu không có thu nhập, ghi 0 và ghi chú "Không có thu nhập" ở mục nguồn khác).', 'thunhap');
+    if (per && per.tu && per.den) {
+      const est = calcSalary(decl.thuNhap.calc, per.tu, per.den, opts.lcs);
+      if (est.total > 0 && num(decl.thuNhap.ban.luong) > 0) {
+        const r = num(decl.thuNhap.ban.luong) / est.total;
+        if (r < 0.8 || r > 1.3) add('canh_bao', 'II.10 Tổng thu nhập', `Thu nhập từ lương, phụ cấp đã ghi (${fmtMoney(decl.thuNhap.ban.luong)}) chênh nhiều so với ước tính theo hệ số (${fmtMoney(est.total)}). Kiểm tra lại các khoản phụ cấp, thưởng hoặc khấu trừ.`, 'thunhap');
+      }
+    }
+  }
+  // --- III. Biến động
+  if (!lanDau) {
+    if (!prev && !decl.ngayKeKhaiTruoc) add('canh_bao', 'III. Biến động', 'Không có dữ liệu kỳ trước trong ứng dụng: phải tự đối chiếu với bản kê khai liền trước để kê khai đầy đủ tài sản tăng/giảm.', 'biendong');
+    if (prev) {
+      const sug = compareDecls(decl, prev);
+      const has = new Set([...decl.bienDong.tang, ...decl.bienDong.giam].map(x => x.key));
+      const miss = [...sug.tang, ...sug.giam].filter(s => !has.has(s.key));
+      if (miss.length) add('loi', 'III. Biến động', `Có ${miss.length} biến động so với kỳ trước chưa đưa vào Mục III. Bấm "Cập nhật gợi ý biến động".`, 'biendong');
+    }
+    decl.bienDong.tang.forEach((x, i) => { if (blank(x.giaiTrinh)) add('loi', 'III.1 Tài sản, thu nhập tăng', `Mục tăng thứ ${ordName(i)} (${x.moTa}) chưa giải trình nguồn gốc tài sản tăng thêm.`, 'biendong'); });
+    decl.bienDong.giam.forEach((x, i) => { if (blank(x.giaiTrinh)) add('loi', 'III.2 Tài sản, thu nhập giảm', `Mục giảm thứ ${ordName(i)} (${x.moTa}) chưa ghi nguyên nhân giảm.`, 'biendong'); });
+    // Đối soát dòng tiền
+    if (prev) {
+      const a = netWorth(decl).net, b = netWorth(prev).net, delta = a - b;
+      const chi = num(decl.chiTieuUocTinh);
+      const gap = delta - (inc.tong - chi);
+      if (delta > 0 && gap > 0) add('canh_bao', 'Đối soát dòng tiền', `Tài sản ròng tăng ${fmtMoney(delta)} đồng, trong khi tổng thu nhập trong kỳ ${fmtMoney(inc.tong)}${chi ? ' trừ chi tiêu ước tính ' + fmtMoney(chi) : ''} — còn chênh ${fmtMoney(gap)} đồng chưa được bù bởi thu nhập. Giải trình rõ nguồn (vay, bán tài sản, được cho/tặng/thừa kế...) để tránh bị đánh giá giải trình không trung thực.`, 'biendong');
+      const totalMove = [...decl.bienDong.tang, ...decl.bienDong.giam].reduce((s, x) => s + num(x.giaTri), 0);
+      if (Math.abs(delta) >= NGUONG_BO_SUNG || inc.tong >= NGUONG_BO_SUNG) add('goi_y', 'Nghĩa vụ kê khai bổ sung', `Biến động tài sản/thu nhập trong năm từ 1 tỷ đồng trở lên — nếu người kê khai không thuộc diện kê khai hằng năm thì phải kê khai bổ sung (khoản 2 Điều 36 Luật PCTN sửa đổi 2025).`, 'biendong');
+      void totalMove;
+    }
+  }
+  // Mục IV
+  if (prev && !lanDau) {
+    const changedPerson = ['chucVu', 'coQuan', 'noiThuongTru', 'noiOHienNay', 'heSoPhuCap'].filter(k => (decl.nguoi[k] || '') !== (prev.nguoi[k] || ''));
+    if ((changedPerson.length || decl.coVoChong !== prev.coVoChong || decl.con.length !== prev.con.length) && blank(decl.thayDoi.thongTinChung)) add('canh_bao', 'IV. Thay đổi thông tin chung', 'Thông tin chung (chức vụ, nơi ở, hôn nhân, con...) có thay đổi so với kỳ trước — nên ghi nội dung thay đổi và lý do vào Mục IV.1.', 'thaydoi');
+  }
+  return R;
+}
+
+// =====================================================================
+// MÔ HÌNH VĂN BẢN (dùng chung cho xem trước HTML và xuất DOCX)
+// block: {t:'p', runs:[{x, b, i, u}], align, indent, before, after, keep}
+//        {t:'table', rows:[[cell...]], widths:[%], border}
+//        {t:'pagebreak'}
+// =====================================================================
+const P = (text, o = {}) => ({ t: 'p', runs: Array.isArray(text) ? text : [{ x: text, b: o.b, i: o.i }], align: o.align || 'both', indent: o.indent ?? 0, firstLine: o.firstLine ?? 0, before: o.before ?? 2, after: o.after ?? 2, size: o.size });
+const R = (x, o = {}) => Object.assign({ x }, o);
+const dots = v => blank(v) ? '' : String(v);
+const KHONG = 'Không có';
+
+function buildDeclDoc(decl, prev, settings = {}) {
+  const B = []; const lanDau = decl.phuongThuc === 'lan_dau';
+  const line = (label, val, ind = 0.5, o = {}) => B.push(P([R(label + ': '), R(blank(val) ? (o.empty ?? KHONG) : String(val))], { indent: ind }));
+  // Đầu trang
+  const coLines = (decl.tenCoQuanDauTrang || 'TÊN CƠ QUAN, ĐƠN VỊ').toUpperCase().split(/\n/).map(x => x.trim()).filter(Boolean);
+  const dang = decl.quocHieu === 'dang';
+  const estW = (t, sz, bold) => t.length * sz * (bold ? 0.0192 : 0.0175); // ước lượng bề rộng chữ (cm)
+  const leftCell = coLines.map((t, i) => P([R(t, { b: i === coLines.length - 1 || coLines.length === 1 })], { align: 'center', before: 0, after: 0, size: 12.5 }));
+  const last = coLines[coLines.length - 1] || '';
+  leftCell.push({ t: 'hr', w: Math.max(1.5, estW(last, 12.5, true) / 3) });
+  const rightCell = dang
+    ? [P([R('ĐẢNG CỘNG SẢN VIỆT NAM', { b: true })], { align: 'center', before: 0, after: 0, size: 13 }), { t: 'hr', w: estW('ĐẢNG CỘNG SẢN VIỆT NAM', 13, true) }]
+    : [P([R('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { b: true })], { align: 'center', before: 0, after: 0, size: 12.5 }), P([R('Độc lập - Tự do - Hạnh phúc', { b: true })], { align: 'center', before: 0, after: 0, size: 13 }), { t: 'hr', w: estW('Độc lập - Tự do - Hạnh phúc', 13, true) }];
+  B.push({ t: 'table', border: false, widths: [40, 60], rows: [[leftCell, rightCell]] });
+  B.push(P([R('BẢN KÊ KHAI TÀI SẢN, THU NHẬP', { b: true })], { align: 'center', before: 14, after: 0, size: 14 }));
+  B.push(P([R(PHUONG_THUC[decl.phuongThuc] + (decl.phuongThuc === 'hang_nam' ? ' NĂM ' + decl.nam : ''), { b: true })], { align: 'center', before: 0, after: 0 }));
+  B.push(P([R(`(Ngày chốt thông tin, dữ liệu về tài sản, thu nhập: ${fmtDate(decl.ngayChot) || '..../..../........'})`, { i: true })], { align: 'center', before: 0, after: 10 }));
+
+  // I. THÔNG TIN CHUNG
+  B.push(P([R('I. THÔNG TIN CHUNG', { b: true })]));
+  B.push(P([R('1. Người kê khai tài sản, thu nhập', { b: true })]));
+  const p = decl.nguoi;
+  B.push(P([R('- Họ và tên: ' + dots(p.hoTen)), R('          Ngày, tháng, năm sinh: ' + fmtDate(p.ngaySinh))], { indent: 0.5 }));
+  line('- Quê quán', p.queQuan); line('- Nơi thường trú', p.noiThuongTru); line('- Nơi ở hiện nay', p.noiOHienNay);
+  B.push(P([R('- Chức vụ/chức danh: ' + dots(p.chucVu)), R('          Hệ số phụ cấp chức vụ: ' + (blank(p.heSoPhuCap) ? 'Không' : p.heSoPhuCap))], { indent: 0.5 }));
+  line('- Cơ quan, đơn vị công tác', p.coQuan);
+  B.push(P(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(p.soDinhDanh)}; ngày cấp: ${fmtDate(p.ngayCap)}; nơi cấp: ${dots(p.noiCap)}`, { indent: 0.5 }));
+  line('- Số điện thoại', p.soDienThoai);
+
+  B.push(P([R('2. Vợ hoặc chồng của người kê khai tài sản, thu nhập', { b: true })]));
+  if (!decl.coVoChong) B.push(P(KHONG, { indent: 0.5 }));
+  else {
+    const v = decl.voChong;
+    B.push(P([R('- Họ và tên: ' + dots(v.hoTen)), R('          Ngày, tháng, năm sinh: ' + fmtDate(v.ngaySinh))], { indent: 0.5 }));
+    line('- Quê quán', v.queQuan); line('- Nơi thường trú', v.noiThuongTru); line('- Nơi ở hiện nay', v.noiOHienNay);
+    B.push(P([R('- Chức vụ/chức danh/nghề nghiệp, công việc đang làm: ' + dots(v.ngheNghiep)), R('          Hệ số phụ cấp chức vụ (nếu có): ' + (blank(v.heSoPhuCap) ? 'Không' : v.heSoPhuCap))], { indent: 0.5 }));
+    line('- Cơ quan, đơn vị công tác, nơi làm việc', v.noiLamViec);
+    B.push(P(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(v.soDinhDanh)}; ngày cấp: ${fmtDate(v.ngayCap)}; nơi cấp: ${dots(v.noiCap)}`, { indent: 0.5 }));
+    line('- Số điện thoại', v.soDienThoai);
+  }
+  B.push(P([R('3. Con chưa thành niên (con đẻ, con nuôi theo quy định của pháp luật)', { b: true })]));
+  if (!decl.con.length) B.push(P(KHONG, { indent: 0.5 }));
+  decl.con.forEach((c, i) => {
+    B.push(P([R(`3.${i + 1}. Con thứ ${ordName(i)}:`, { i: true })], { indent: 0.25 }));
+    B.push(P([R('- Họ và tên: ' + dots(c.hoTen)), R('          Ngày, tháng, năm sinh: ' + fmtDate(c.ngaySinh))], { indent: 0.5 }));
+    line('- Nơi thường trú', c.noiThuongTru); line('- Nơi ở hiện nay', c.noiOHienNay);
+    B.push(P(`- Số định danh cá nhân/Số thẻ căn cước: ${dots(c.soDinhDanh)}; ngày cấp: ${fmtDate(c.ngayCap)}; nơi cấp: ${dots(c.noiCap)}`, { indent: 0.5 }));
+  });
+
+  // II. THÔNG TIN MÔ TẢ VỀ TÀI SẢN
+  B.push(P([R('II. THÔNG TIN MÔ TẢ VỀ TÀI SẢN', { b: true })], { before: 8 }));
+  const valStr = (g, it) => {
+    if (it.giaTri_unk) return 'Không xác định được giá trị' + (it.giaTri_unkReason ? ' (lý do: ' + it.giaTri_unkReason + ')' : '');
+    const f = g.fields.find(x => x.k === 'giaTri');
+    if (f && f.t === 'fx' && it.giaTri_cur && it.giaTri_cur !== 'VND') return `${fmtMoney(it.giaTri_fx)} ${it.giaTri_cur} (tỷ giá ${fmtMoney(it.giaTri_rate)}), quy đổi ${fmtVND(itemValue(g, it))}`;
+    return fmtVND(itemValue(g, it));
+  };
+  const ownerNote = it => (it.dungTen && it.dungTen !== 'Người kê khai') ? `Thuộc sở hữu/sử dụng của: ${it.dungTen}. ` : '';
+  const tail = (g, it) => {
+    B.push(P('- Thông tin khác (nếu có): ' + dots(it.thongTinKhac), { indent: 0.5 }));
+    B.push(P('+ Nguồn hình thành: ' + (blank(it.nguon) ? '' : it.nguon), { indent: 0.75 }));
+    B.push(P('+ Tình trạng quản lý, sử dụng' + (['datO', 'datKhac'].includes(g.key) ? '' : ', sở hữu') + ': ' + dots(it.tinhTrang), { indent: 0.75 }));
+    B.push(P('+ Ghi chú: ' + ownerNote(it) + dots(it.ghiChu), { indent: 0.75 }));
+  };
+  const head = (txt, ind = 0) => B.push(P([R(txt, { b: true })], { indent: ind }));
+  const sub = (txt, ind = 0.25) => B.push(P([R(txt, { b: true, i: true })], { indent: ind }));
+  const list = k => decl.ts[k] || [];
+  const realEstate = (g, labelFn) => {
+    const items = list(g.key);
+    if (!items.length) { B.push(P(KHONG, { indent: 0.5 })); return; }
+    items.forEach((it, i) => { B.push(P([R(`${g.sec}.${i + 1}. ${g.item} thứ ${ordName(i)}:`, { i: true })], { indent: 0.5 })); labelFn(it); tail(g, it); });
+  };
+  head('1. Quyền sử dụng đất:');
+  sub('1.1. Đất ở:');
+  realEstate(GROUP.datO, it => {
+    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
+    line('- Diện tích', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
+    line('- Giá trị', valStr(GROUP.datO, it)); line('- Giấy chứng nhận quyền sử dụng', it.gcn, 0.5, { empty: '' });
+  });
+  sub('1.2. Các loại đất khác:');
+  realEstate(GROUP.datKhac, it => {
+    line('- Loại đất', it.loaiDat, 0.5, { empty: '' });
+    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
+    line('- Diện tích', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
+    line('- Giá trị', valStr(GROUP.datKhac, it)); line('- Giấy chứng nhận quyền sử dụng', it.gcn, 0.5, { empty: '' });
+  });
+  head('2. Nhà ở, công trình xây dựng:');
+  sub('2.1. Nhà ở:');
+  realEstate(GROUP.nhaO, it => {
+    line('- Loại nhà', it.loaiNha, 0.5, { empty: '' });
+    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
+    line('- Diện tích sử dụng', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
+    line('- Giá trị', valStr(GROUP.nhaO, it)); line('- Giấy chứng nhận quyền sở hữu', it.gcn, 0.5, { empty: '' });
+  });
+  sub('2.2. Công trình xây dựng khác:');
+  realEstate(GROUP.congTrinh, it => {
+    line('- Tên công trình', it.ten, 0.5, { empty: '' });
+    line('- Địa chỉ', [it.diaChi, it.diaChiCu ? '(địa chỉ trên Giấy chứng nhận: ' + it.diaChiCu + ')' : ''].filter(Boolean).join(' '), 0.5, { empty: '' });
+    line('- Diện tích', it.dienTich ? it.dienTich + ' m²' : '', 0.5, { empty: '' });
+    line('- Giá trị', valStr(GROUP.congTrinh, it)); line('- Giấy chứng nhận quyền sở hữu', it.gcn, 0.5, { empty: '' });
+  });
+  head('3. Tài sản khác gắn liền với đất:');
+  const simple3 = (g, title, fn) => {
+    sub(title); const items = list(g.key);
+    if (!items.length) { B.push(P(KHONG, { indent: 0.5 })); return; }
+    items.forEach(it => { fn(it); tail(g, it); });
+  };
+  simple3(GROUP.cayLauNam, '3.1. Cây lâu năm:', it => B.push(P(`- Loại cây: ${dots(it.loaiCay)}; Số lượng: ${dots(it.soLuong)}; Giá trị: ${valStr(GROUP.cayLauNam, it)}`, { indent: 0.5 })));
+  simple3(GROUP.rung, '3.2. Rừng sản xuất:', it => B.push(P(`- Loại rừng: ${dots(it.loaiRung)}; Diện tích: ${it.dienTich ? it.dienTich + ' m²' : ''}; Giá trị: ${valStr(GROUP.rung, it)}`, { indent: 0.5 })));
+  simple3(GROUP.vatKienTruc, '3.3. Vật kiến trúc khác gắn liền với đất:', it => B.push(P(`- Tên gọi: ${dots(it.tenGoi)}; Số lượng: ${dots(it.soLuong)}; Đơn vị: ${dots(it.donVi)}; Giá trị: ${valStr(GROUP.vatKienTruc, it)}`, { indent: 0.5 })));
+
+  head('4. Vàng, kim cương, bạch kim và các kim loại quý, đá quý khác:');
+  const klq = list('kimLoaiQuy').filter(it => settings.keKhaiDuoiNguong || it.giaTri_unk || itemValue(GROUP.kimLoaiQuy, it) >= NGUONG || klqGroupOver(decl, it));
+  if (!klq.length) B.push(P(KHONG, { indent: 0.5 }));
+  klq.forEach((it, i) => {
+    B.push(P([R(`4.${i + 1}. Tài sản thứ ${ordName(i)}:`, { i: true })], { indent: 0.5 }));
+    B.push(P(`- Tên tài sản: ${dots(it.ten)}; Số lượng, đơn vị tính: ${dots(it.soLuong)}; Tổng giá trị: ${valStr(GROUP.kimLoaiQuy, it)}`, { indent: 0.5 }));
+    tail(GROUP.kimLoaiQuy, it);
+  });
+
+  // 5. Tiền
+  const tien = groupTotal(decl, MONEY_KEYS);
+  const showTien = tien >= NGUONG || settings.keKhaiDuoiNguong;
+  B.push(P([R('5. Tiền (tiền Việt Nam, ngoại tệ): ', { b: true }), R('ghi tổng số tiền tại thời điểm kê khai bao gồm tiền mặt, tiền cho vay, tiền trả trước, tiền gửi cá nhân, tổ chức trong nước, tổ chức nước ngoài tại Việt Nam: '), R(showTien ? fmtVND(tien) : KHONG, { b: true })]));
+  if (showTien) {
+    const sumOf = k => list(k).reduce((s, it) => s + itemValue(GROUP[k], it), 0);
+    const fxNote = (g, it) => (it.giaTri_cur && it.giaTri_cur !== 'VND') ? ` (${fmtMoney(it.giaTri_fx)} ${it.giaTri_cur}, tỷ giá ${fmtMoney(it.giaTri_rate)})` : '';
+    const tm = list('tienMat');
+    B.push(P(`5.1. Tiền mặt: ${tm.length ? fmtVND(sumOf('tienMat')) + tm.map(it => fxNote(GROUP.tienMat, it)).join('') : KHONG}. Tình trạng quản lý, sử dụng: ${tm.map(it => [ownerNote(it), it.tinhTrang].filter(Boolean).join('')).filter(Boolean).join('; ')}`, { indent: 0.25 }));
+    const cv = list('tienChoVay');
+    B.push(P(`5.2. Tiền cho vay: ${cv.length ? fmtVND(sumOf('tienChoVay')) : KHONG}. Tài liệu minh chứng (nếu có): ${cv.map(it => [it.benVay ? 'cho ' + it.benVay + ' vay ' + fmtMoney(itemValue(GROUP.tienChoVay, it)) + fxNote(GROUP.tienChoVay, it) : '', it.minhChung].filter(Boolean).join(', ')).filter(Boolean).join('; ')}`, { indent: 0.25 }));
+    const tt = list('tienTraTruoc');
+    B.push(P(`5.3. Tiền trả trước: ${tt.length ? fmtVND(sumOf('tienTraTruoc')) : KHONG}. Tài liệu minh chứng (nếu có): ${tt.map(it => [it.noiDung, it.minhChung].filter(Boolean).join(', ')).filter(Boolean).join('; ')}`, { indent: 0.25 }));
+    B.push(P('5.4. Tiền gửi cá nhân hoặc tổ chức trong nước, tổ chức nước ngoài tại Việt Nam', { indent: 0.25 }));
+    const tk = list('taiKhoan'), stk = list('soTietKiem'), kh = list('tienGuiKhac');
+    if (!tk.length && !stk.length && !kh.length) B.push(P(KHONG, { indent: 0.5 }));
+    tk.forEach(it => B.push(P(`- Số tài khoản thanh toán: ${dots(it.soTK)}. Tại đơn vị, tổ chức: ${dots(it.toChuc)}. Số dư tại thời điểm kê khai: ${fmtVND(itemValue(GROUP.taiKhoan, it))}${fxNote(GROUP.taiKhoan, it)}${it.dungTen && it.dungTen !== 'Người kê khai' ? ' (' + it.dungTen + ')' : ''}`, { indent: 0.5 })));
+    stk.forEach(it => B.push(P(`- Số tài khoản/số sổ tiết kiệm: ${dots(it.soTK)}. Tại đơn vị, tổ chức: ${dots(it.toChuc)}. Số tiền: ${fmtVND(itemValue(GROUP.soTietKiem, it))}${fxNote(GROUP.soTietKiem, it)}${it.dungTen && it.dungTen !== 'Người kê khai' ? ' (' + it.dungTen + ')' : ''}`, { indent: 0.5 })));
+    kh.forEach(it => B.push(P(`- Các loại tiền gửi khác: ${dots(it.moTa)}. Tổng số tiền: ${fmtVND(itemValue(GROUP.tienGuiKhac, it))}${fxNote(GROUP.tienGuiKhac, it)}. Tài liệu minh chứng (nếu có): ${dots(it.minhChung)}`, { indent: 0.5 })));
+  }
+  // 6. Chứng khoán
+  const ckT = groupTotal(decl, SEC_KEYS);
+  const showCk = ckT >= NGUONG || settings.keKhaiDuoiNguong;
+  head('6. Cổ phiếu, trái phiếu, vốn góp, các loại giấy tờ có giá khác:');
+  if (!showCk) B.push(P(KHONG, { indent: 0.5 }));
+  else {
+    const sec6 = (k, title, fn) => { B.push(P(title, { indent: 0.25 })); const it = list(k); if (!it.length) B.push(P(KHONG, { indent: 0.5 })); it.forEach(x => B.push(P(fn(x), { indent: 0.5 }))); };
+    sec6('coPhieu', '6.1. Cổ phiếu:', x => `- Tên cổ phiếu: ${dots(x.ten)}; Số lượng: ${dots(x.soLuong)}; Giá trị: ${fmtVND(itemValue(GROUP.coPhieu, x))}`);
+    sec6('traiPhieu', '6.2. Trái phiếu:', x => `- Tên trái phiếu: ${dots(x.ten)}; Số lượng: ${dots(x.soLuong)}; Giá trị: ${fmtVND(itemValue(GROUP.traiPhieu, x))}`);
+    sec6('vonGop', '6.3. Vốn góp:', x => `- Hình thức, loại vốn góp: ${dots(x.hinhThuc)}; Giá trị: ${fmtVND(itemValue(GROUP.vonGop, x))}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`);
+    sec6('giayToCoGia', '6.4. Các loại giấy tờ có giá khác:', x => `- Tên giấy tờ có giá: ${dots(x.ten)}; Giá trị: ${fmtVND(itemValue(GROUP.giayToCoGia, x))}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`);
+  }
+  // 7. Tài sản khác
+  head('7. Tài sản khác:');
+  const over = (k) => list(k).filter(it => settings.keKhaiDuoiNguong || itemValue(GROUP[k], it) >= NGUONG || it.giaTri_unk);
+  B.push(P('7.1. Tài sản theo quy định của pháp luật phải đăng ký sử dụng và được cấp giấy đăng ký (tàu bay, tàu thủy, thuyền, máy ủi, máy xúc, ô tô, mô tô, xe gắn máy...):', { indent: 0.25 }));
+  const d71 = over('tsDangKy'); if (!d71.length) B.push(P(KHONG, { indent: 0.5 }));
+  d71.forEach(x => B.push(P(`- Tên tài sản: ${dots(x.ten)}; Số đăng ký: ${dots(x.soDangKy)}; Giá trị: ${valStr(GROUP.tsDangKy, x)}; Thông tin khác (nếu có): ${ownerNote(x)}${dots(x.thongTinKhac)}`, { indent: 0.5 })));
+  B.push(P('7.2. Tài sản khác như tài sản số, tài sản đấu giá (biển số xe, sim điện thoại...), quyền sở hữu trí tuệ, đồ mỹ nghệ, đồ thờ cúng, bàn ghế, cây cảnh, tranh, ảnh, cổ vật...:', { indent: 0.25 }));
+  const d72 = over('tsKhac'); if (!d72.length) B.push(P(KHONG, { indent: 0.5 }));
+  d72.forEach(x => B.push(P(`- Loại tài sản: ${dots(x.loai)}; Số lượng, giá trị: ${dots(x.soLuong)}${x.soLuong ? ', ' : ''}${valStr(GROUP.tsKhac, x)}; Thông tin khác (nếu có): ${ownerNote(x)}${dots(x.thongTinKhac)}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`, { indent: 0.5 })));
+  // 8, 9
+  head('8. Tài sản ở nước ngoài:');
+  const nn = list('tsNuocNgoai'); if (!nn.length) B.push(P(KHONG, { indent: 0.5 }));
+  nn.forEach(x => B.push(P(`- ${dots(x.loai)} tại ${dots(x.quocGia)}: ${dots(x.moTa)}; Giá trị: ${valStr(GROUP.tsNuocNgoai, x)}`, { indent: 0.5 })));
+  head('9. Tài khoản ở nước ngoài:');
+  const tkn = list('tkNuocNgoai'); if (!tkn.length) B.push(P(KHONG, { indent: 0.5 }));
+  tkn.forEach(x => { B.push(P(`- Tên chủ tài khoản: ${dots(x.chuTK)}; Số tài khoản: ${dots(x.soTK)}`, { indent: 0.5 })); B.push(P(`- Tên ngân hàng, chi nhánh ngân hàng, tổ chức nơi mở tài khoản: ${dots(x.nganHang)}`, { indent: 0.5 })); });
+  // 10. Thu nhập
+  B.push(P([R('10. Tổng thu nhập giữa hai lần kê khai, gồm thu nhập bằng tiền; bằng tài sản hoặc hiện vật có giá trị (ước tính hoặc giá niêm yết):', { b: true })]));
+  if (lanDau) B.push(P('(Kê khai lần đầu — không phải kê khai)', { indent: 0.5 }));
+  else {
+    const per = incomePeriod(decl, prev); const t = decl.thuNhap; const inc = incomeTotals(decl);
+    if (per && per.tu) B.push(P([R(`(Từ ngày ${fmtDate(per.tu)} đến ngày ${fmtDate(per.den)})`, { i: true })], { indent: 0.5 }));
+    B.push(P(`- Thu nhập của người kê khai: ${fmtVND(inc.ban)}, gồm:`, { indent: 0.5 }));
+    B.push(P(`+ Thu nhập từ lương, phụ cấp, trợ cấp: ${fmtVND(num(t.ban.luong))}`, { indent: 0.75 }));
+    B.push(P(`+ Thu nhập từ kinh doanh hoặc từ nguồn khác (nếu có): ${num(t.ban.khac) ? fmtVND(num(t.ban.khac)) + (t.ban.khacGhiChu ? ' (' + t.ban.khacGhiChu + ')' : '') : KHONG}`, { indent: 0.75 }));
+    if (decl.coVoChong) {
+      B.push(P(`- Thu nhập của vợ/chồng người kê khai: ${fmtVND(inc.vc)}, gồm:`, { indent: 0.5 }));
+      B.push(P(`+ Thu nhập từ lương, phụ cấp, trợ cấp, tiền công: ${num(t.voChong.luong) ? fmtVND(num(t.voChong.luong)) : KHONG}`, { indent: 0.75 }));
+      B.push(P(`+ Thu nhập từ kinh doanh hoặc từ nguồn khác (nếu có): ${num(t.voChong.khac) ? fmtVND(num(t.voChong.khac)) + (t.voChong.khacGhiChu ? ' (' + t.voChong.khacGhiChu + ')' : '') : KHONG}`, { indent: 0.75 }));
+    } else B.push(P(`- Thu nhập của vợ/chồng người kê khai: ${KHONG}`, { indent: 0.5 }));
+    B.push(P(`- Thu nhập của con chưa thành niên: ${num(t.con) ? fmtVND(num(t.con)) + (t.conGhiChu ? ' (' + t.conGhiChu + ')' : '') : KHONG}`, { indent: 0.5 }));
+    B.push(P(`- Các khoản thu nhập chung: ${num(t.chung) ? fmtVND(num(t.chung)) + (t.chungGhiChu ? ' (' + t.chungGhiChu + ')' : '') : KHONG}`, { indent: 0.5 }));
+    B.push(P([R(`- Tổng thu nhập giữa hai lần kê khai: `), R(fmtVND(inc.tong), { b: true })], { indent: 0.5 }));
+  }
+  // 11. Nợ
+  B.push(P([R('11. Các khoản nợ có giá trị từ 150 triệu đồng trở lên: ', { b: true }), R('kê khai các khoản nợ bằng tiền, bằng hiện vật... của tổ chức, cá nhân; ghi rõ số lượng, chủng loại, giá trị; tài liệu minh chứng (nếu có).')]));
+  const noList = list('no').filter(x => settings.keKhaiDuoiNguong || itemValue(GROUP.no, x) >= NGUONG);
+  if (!noList.length) B.push(P(KHONG, { indent: 0.5 }));
+  noList.forEach((x, i) => B.push(P(`- Khoản nợ thứ ${ordName(i)}: nợ ${dots(x.chuNo)}; ${dots(x.noiDung)}; Giá trị: ${valStr(GROUP.no, x)}; Tài liệu minh chứng (nếu có): ${dots(x.minhChung)}`, { indent: 0.5 })));
+
+  // III. BIẾN ĐỘNG
+  B.push(P([R('III. BIẾN ĐỘNG TÀI SẢN, THU NHẬP; GIẢI TRÌNH BIẾN ĐỘNG TÀI SẢN, THU NHẬP', { b: true })], { before: 8 }));
+  if (lanDau) B.push(P('(Kê khai lần đầu — không phải kê khai)', { indent: 0.5 }));
+  else {
+    B.push(P([R('1. Tài sản, thu nhập tăng', { b: true })]));
+    if (!decl.bienDong.tang.length) B.push(P(KHONG, { indent: 0.5 }));
+    decl.bienDong.tang.forEach((x, i) => {
+      B.push(P(`1.${i + 1}. Tài sản, thu nhập tăng thứ ${ordName(i)}: ${x.moTa}; giá trị tăng: ${fmtVND(num(x.giaTri))}`, { indent: 0.25 }));
+      B.push(P('- Giải trình nguồn gốc tài sản, thu nhập tăng thêm: ' + dots(x.giaiTrinh), { indent: 0.5 }));
+      B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung), { indent: 0.5 }));
+    });
+    B.push(P([R('2. Tài sản, thu nhập giảm', { b: true })]));
+    if (!decl.bienDong.giam.length) B.push(P(KHONG, { indent: 0.5 }));
+    decl.bienDong.giam.forEach((x, i) => {
+      B.push(P(`2.${i + 1}. Tài sản, thu nhập giảm thứ ${ordName(i)}: ${x.moTa}; giá trị giảm: ${fmtVND(num(x.giaTri))}`, { indent: 0.25 }));
+      B.push(P('- Nguyên nhân tài sản, thu nhập giảm: ' + dots(x.giaiTrinh), { indent: 0.5 }));
+      B.push(P('- Tài liệu minh chứng (nếu có): ' + dots(x.minhChung), { indent: 0.5 }));
+    });
+  }
+  // IV
+  B.push(P([R('IV. NỘI DUNG THAY ĐỔI, BỔ SUNG, ĐIỀU CHỈNH', { b: true })], { before: 8 }));
+  B.push(P([R('1. Nội dung thay đổi, bổ sung, điều chỉnh về thông tin chung (nếu có):', { b: true })]));
+  B.push(P(blank(decl.thayDoi.thongTinChung) ? KHONG : decl.thayDoi.thongTinChung, { indent: 0.5 }));
+  B.push(P([R('2. Nội dung thay đổi, bổ sung, điều chỉnh về kê khai tài sản, thu nhập (nếu có):', { b: true })]));
+  B.push(P(blank(decl.thayDoi.taiSan) ? KHONG : decl.thayDoi.taiSan, { indent: 0.5 }));
+
+  // Chữ ký
+  const d = decl.ngayKeKhai ? new Date(decl.ngayKeKhai + 'T00:00:00') : null;
+  const dd = decl.diaDanh || '......';
+  const ngayStr = d ? `${dd}, ngày ${pad(d.getDate())} tháng ${pad(d.getMonth() + 1)} năm ${d.getFullYear()}` : `${dd}, ngày ..... tháng ..... năm ........`;
+  B.push({ t: 'table', border: false, widths: [50, 50], keep: true, rows: [[
+    [P([R(`${dd}, ngày ..... tháng ..... năm ........`, { i: true })], { align: 'center', before: 12 }), P([R('NGƯỜI NHẬN BẢN KÊ KHAI', { b: true })], { align: 'center', before: 0, after: 0 }), P([R('(Ký, ghi rõ họ tên, chức vụ/chức danh)', { i: true })], { align: 'center', before: 0 })],
+    [P([R(ngayStr, { i: true })], { align: 'center', before: 12 }), P([R('NGƯỜI KÊ KHAI TÀI SẢN', { b: true })], { align: 'center', before: 0, after: 0 }), P([R('(Ký, ghi rõ họ tên)', { i: true })], { align: 'center', before: 0 }), P('', { before: 48 }), P([R(dots(p.hoTen), { b: true })], { align: 'center' })]
+  ]] });
+  return B;
+}
+function klqGroupOver(decl, it) {
+  const k = (it.ten || '').trim().toLowerCase().split(/\s+/)[0] || '?';
+  return (decl.ts.kimLoaiQuy || []).filter(x => ((x.ten || '').trim().toLowerCase().split(/\s+/)[0] || '?') === k).reduce((s, x) => s + itemValue(GROUP.kimLoaiQuy, x), 0) >= NGUONG;
+}
+
+// ---------------------------------------------------------------------
+// Văn bản của Đầu mối: danh sách theo phụ lục, sổ theo dõi giao nhận
+// ---------------------------------------------------------------------
+function buildListDoc(rows, meta = {}) {
+  const B = [];
+  B.push(P([R((meta.tieuDe || 'DANH SÁCH NGƯỜI CÓ NGHĨA VỤ KÊ KHAI TSTN HẰNG NĂM ' + (meta.nam || '')).toUpperCase(), { b: true })], { align: 'center', after: 2 }));
+  if (meta.donVi) B.push(P([R('Đơn vị: ' + meta.donVi, { i: true })], { align: 'center', after: 8 }));
+  const head = ['STT', 'Họ và tên người thuộc diện kê khai TSTN', 'Chức vụ (ghi rõ chức vụ tại phòng, ban, đơn vị)', 'Ghi chú'];
+  const tr = [head.map(h => [P([R(h, { b: true })], { align: 'center' })])];
+  rows.forEach((r, i) => tr.push([[P(String(i + 1), { align: 'center' })], [P(r.hoTen || '')], [P(r.chucVu || '')], [P(r.ghiChu || '')]]));
+  B.push({ t: 'table', border: true, widths: [8, 34, 38, 20], rows: tr });
+  B.push(P('', { after: 6 }));
+  B.push(signBlock(meta));
+  return B;
+}
+function buildTrackDoc(rows, meta = {}) {
+  const B = [];
+  B.push(P([R('SỔ THEO DÕI KÊ KHAI, GIAO NHẬN BẢN KÊ KHAI TÀI SẢN, THU NHẬP NĂM ' + (meta.nam || ''), { b: true })], { align: 'center' }));
+  if (meta.donVi) B.push(P([R('Đơn vị: ' + meta.donVi, { i: true })], { align: 'center', after: 8 }));
+  const head = ['STT', 'Họ và tên', 'Chức vụ', 'Phương thức kê khai', 'Ngày nhận', 'Số bộ', 'Kết quả rà soát', 'Người nhận ký'];
+  const tr = [head.map(h => [P([R(h, { b: true })], { align: 'center' })])];
+  rows.forEach((r, i) => tr.push([[P(String(i + 1), { align: 'center' })], [P(r.hoTen || '')], [P(r.chucVu || '')], [P(r.phuongThuc || '')], [P(r.ngayNhan || '', { align: 'center' })], [P(String(r.soBo || ''), { align: 'center' })], [P(r.ketQua || '')], [P('')]]));
+  B.push({ t: 'table', border: true, widths: [6, 18, 16, 14, 11, 7, 16, 12], rows: tr });
+  B.push(P('', { after: 6 }));
+  B.push(signBlock(meta));
+  return B;
+}
+function buildCommentDoc(item, meta = {}) {
+  const B = [];
+  B.push(P([R('PHIẾU GÓP Ý BẢN KÊ KHAI TÀI SẢN, THU NHẬP', { b: true })], { align: 'center' }));
+  B.push(P(`Người kê khai: ${item.hoTen || ''} — Chức vụ: ${item.chucVu || ''}`, { before: 8 }));
+  B.push(P(`Phương thức: ${item.phuongThuc || ''}; Ngày chốt thông tin: ${item.ngayChot || ''}`));
+  B.push(P([R('1. Kết quả rà soát tự động', { b: true })], { before: 6 }));
+  if (!item.findings || !item.findings.length) B.push(P('Không phát hiện lỗi.', { indent: 0.5 }));
+  (item.findings || []).filter(f => f.level !== 'goi_y').forEach(f => B.push(P(`- [${f.level === 'loi' ? 'Lỗi' : 'Cảnh báo'}] ${f.sec}: ${f.msg}`, { indent: 0.5 })));
+  B.push(P([R('2. Góp ý của người rà soát', { b: true })], { before: 6 }));
+  B.push(P(blank(item.gopY) ? 'Không có.' : item.gopY, { indent: 0.5 }));
+  B.push(signBlock(meta));
+  return B;
+}
+function signBlock(meta) {
+  const d = new Date();
+  return { t: 'table', border: false, widths: [50, 50], keep: true, rows: [[
+    [P('')],
+    [P([R(`${meta.diaDanh || '......'}, ngày ${pad(d.getDate())} tháng ${pad(d.getMonth() + 1)} năm ${d.getFullYear()}`, { i: true })], { align: 'center', before: 8 }), P([R((meta.chucDanhKy || 'NGƯỜI LẬP').toUpperCase(), { b: true })], { align: 'center' }), P('', { before: 48 }), P([R(meta.nguoiKy || '', { b: true })], { align: 'center' })]
+  ]] };
+}
+
+// =====================================================================
+// XUẤT DOCX (tự đóng gói ZIP, không cần thư viện, chạy offline)
+// =====================================================================
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(buf) { let c = 0xFFFFFFFF; for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zip(files) {
+  const enc = new TextEncoder(); const chunks = []; const central = []; let offset = 0;
+  const u16 = n => [n & 255, (n >>> 8) & 255], u32 = n => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+  for (const f of files) {
+    const name = enc.encode(f.name); const data = typeof f.data === 'string' ? enc.encode(f.data) : f.data;
+    const crc = crc32(data);
+    const local = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0)]);
+    chunks.push(local, name, data);
+    central.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset)]), name);
+    offset += local.length + name.length + data.length;
+  }
+  const cdSize = central.reduce((s, c) => s + c.length, 0);
+  const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(offset), ...u16(0)]);
+  const all = [...chunks, ...central, end]; const total = all.reduce((s, c) => s + c.length, 0);
+  const out = new Uint8Array(total); let p = 0; for (const c of all) { out.set(c, p); p += c.length; }
+  return out;
+}
+const xe = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function docxPara(b, size) {
+  const sz = (b.size || size) * 2;
+  const ppr = `<w:pPr><w:spacing w:before="${Math.round((b.before ?? 2) * 20)}" w:after="${Math.round((b.after ?? 2) * 20)}" w:line="264" w:lineRule="auto"/>${b.indent ? `<w:ind w:left="${Math.round(b.indent * 567)}"/>` : ''}<w:jc w:val="${b.align === 'both' ? 'both' : b.align}"/></w:pPr>`;
+  const runs = (b.runs || []).map(r => {
+    const rpr = `<w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>${r.b ? '<w:b/>' : ''}${r.i ? '<w:i/>' : ''}${r.u ? '<w:u w:val="single"/>' : ''}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr>`;
+    return String(r.x ?? '').split('\n').map((t, i) => `${i ? `<w:r>${rpr}<w:br/></w:r>` : ''}<w:r>${rpr}<w:t xml:space="preserve">${xe(t)}</w:t></w:r>`).join('');
+  }).join('');
+  return `<w:p>${ppr}${runs}</w:p>`;
+}
+function docxHr(b, containerTw) {
+  const w = Math.round(b.w * 567); const ind = Math.max(0, Math.round((containerTw - 160 - w) / 2));
+  return `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="000000"/></w:pBdr><w:spacing w:before="50" w:after="0" w:line="120" w:lineRule="exact"/><w:ind w:left="${ind}" w:right="${ind}"/></w:pPr><w:r><w:rPr><w:sz w:val="4"/></w:rPr><w:t></w:t></w:r></w:p>`;
+}
+function docxTable(t, size, textWidth) {
+  const tw = textWidth; const widths = t.widths.map(w => Math.round(tw * w / 100));
+  const bd = t.border ? `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(s => `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="000000"/>`).join('')}</w:tblBorders>` : `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(s => `<w:${s} w:val="nil"/>`).join('')}</w:tblBorders>`;
+  const rows = t.rows.map((r, ri) => `<w:tr>${t.keep ? '<w:trPr><w:cantSplit/></w:trPr>' : (t.border && ri === 0 ? '<w:trPr><w:tblHeader/></w:trPr>' : '')}${r.map((cell, ci) => `<w:tc><w:tcPr><w:tcW w:w="${widths[ci]}" w:type="dxa"/></w:tcPr>${(cell.length ? cell : [P('')]).map(b => b.t === 'hr' ? docxHr(b, widths[ci]) : docxPara(b, size)).join('')}</w:tc>`).join('')}</w:tr>`).join('');
+  return `<w:tbl><w:tblPr><w:tblW w:w="${tw}" w:type="dxa"/><w:tblLayout w:type="fixed"/>${bd}<w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`;
+}
+function buildDocx(blocks, o = {}) {
+  const size = o.fontSize || 13;
+  const landscape = !!o.landscape;
+  const W = landscape ? 16838 : 11906, H = landscape ? 11906 : 16838;
+  const mT = 1134, mB = 1134, mL = 1701, mR = 1134; // 2cm, 2cm, 3cm, 2cm
+  const textWidth = W - mL - mR;
+  const body = blocks.map(b => b.t === 'table' ? docxTable(b, size, textWidth) : b.t === 'pagebreak' ? '<w:p><w:r><w:br w:type="page"/></w:r></w:p>' : docxPara(b, size)).join('');
+  const ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const footerTxt = o.footer || '';
+  const footer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${ns}><w:p><w:pPr><w:tabs><w:tab w:val="right" w:pos="${textWidth}"/></w:tabs></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:i/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${xe(footerTxt)}</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:tab/><w:t xml:space="preserve">Trang </w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">/</w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:instrText xml:space="preserve"> NUMPAGES </w:instrText></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`;
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${ns}><w:body>${body}<w:sectPr><w:footerReference w:type="default" r:id="rIdF1"/><w:pgSz w:w="${W}" w:h="${H}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="${mT}" w:right="${mR}" w:bottom="${mB}" w:left="${mL}" w:header="567" w:footer="454" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="${size * 2}"/><w:szCs w:val="${size * 2}"/><w:lang w:val="vi-VN"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`;
+  const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  const files = [
+    { name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>` },
+    { name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>` },
+    { name: 'word/_rels/document.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdF1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>` },
+    { name: 'word/document.xml', data: doc },
+    { name: 'word/styles.xml', data: styles },
+    { name: 'word/footer1.xml', data: footer },
+    { name: 'docProps/core.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(o.title || 'Bản kê khai tài sản, thu nhập')}</dc:title><dc:creator>${xe(o.creator || '')}</dc:creator><dc:description>${xe('Lập bằng phần mềm ' + APP.name + ' ' + APP.version + ' — ' + APP.copyright)}</dc:description><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created></cp:coreProperties>` },
+    { name: 'docProps/app.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>${xe(APP.name + ' ' + APP.version)}</Application><Company>${xe(APP.copyright)}</Company></Properties>` }
+  ];
+  return zip(files);
+}
+
+// Xem trước HTML từ cùng mô hình
+function blocksToHtml(blocks, size = 13) {
+  const para = b => `<p style="text-align:${b.align === 'both' ? 'justify' : b.align};margin:${(b.before ?? 2)}pt 0 ${(b.after ?? 2)}pt ${(b.indent || 0)}cm;${b.size ? 'font-size:' + b.size + 'pt;' : ''}">${(b.runs || []).map(r => { let s = xe(r.x).replace(/\n/g, '<br>'); if (r.b) s = `<b>${s}</b>`; if (r.i) s = `<i>${s}</i>`; if (r.u) s = `<u>${s}</u>`; return s; }).join('') || '&nbsp;'}</p>`;
+  return `<div class="doc" style="font-size:${size}pt">` + blocks.map(b => {
+    if (b.t === 'table') return `<table class="${b.border ? 'bd' : 'nb'}" style="width:100%">${b.rows.map(r => `<tr>${r.map((c, i) => `<td style="width:${b.widths[i]}%">${c.map(b => b.t === 'hr' ? `<div class="hr" style="width:${b.w}cm"></div>` : para(b)).join('')}</td>`).join('')}</tr>`).join('')}</table>`;
+    if (b.t === 'pagebreak') return '<div class="pb"></div>';
+    return para(b);
+  }).join('') + '</div>';
+}
+
+// =====================================================================
+// MÃ HOÁ FILE .tstn (AES-GCM 256, khoá dẫn xuất PBKDF2-SHA256 250.000 vòng)
+// =====================================================================
+const b64 = { enc: u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }, dec: s => Uint8Array.from(atob(s), c => c.charCodeAt(0)) };
+function cryptoOK() { try { return !!(root.crypto && root.crypto.subtle); } catch { return false; } }
+async function deriveKey(pw, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function encryptJSON(obj, pw) {
+  const payload = JSON.stringify(obj);
+  if (!pw) return JSON.stringify({ app: 'KeKhaiTSTN', format: 1, enc: 'none', data: obj });
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12)), iter = 250000;
+  const key = await deriveKey(pw, salt, iter);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(payload)));
+  return JSON.stringify({ app: 'KeKhaiTSTN', format: 1, enc: 'AES-GCM-256', kdf: 'PBKDF2-SHA256', iter, salt: b64.enc(salt), iv: b64.enc(iv), data: b64.enc(ct) });
+}
+async function decryptJSON(text, pw) {
+  const o = JSON.parse(text);
+  if (o.app !== 'KeKhaiTSTN') {
+    if (o.decls || o.phuongThuc || o.type) return o; // json thô
+    throw new Error('Không phải file của ứng dụng Kê khai TSTN');
+  }
+  if (o.enc === 'none') return o.data;
+  if (!pw) { const e = new Error('Cần mật khẩu'); e.needPw = true; throw e; }
+  const key = await deriveKey(pw, b64.dec(o.salt), o.iter || 250000);
+  try {
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(o.iv) }, key, b64.dec(o.data));
+    return JSON.parse(new TextDecoder().decode(pt));
+  } catch { const e = new Error('Sai mật khẩu hoặc file bị hỏng'); e.badPw = true; throw e; }
+}
+function isEncrypted(text) { try { const o = JSON.parse(text); return o.app === 'KeKhaiTSTN' && o.enc !== 'none'; } catch { return false; } }
+
+// Xuất JSON chuẩn hoá (để chuyển đổi sang hệ thống quốc gia khi có đặc tả)
+function exportStructured(hoso, decl, prev) {
+  return {
+    schema: 'kekhai-tstn/nd164-2026', schemaVersion: 1, app: APP.name + ' ' + APP.version,
+    canCu: 'Phụ lục Nghị định 164/2026/NĐ-CP', exportedAt: new Date().toISOString(),
+    phuongThuc: decl.phuongThuc, nam: decl.nam, ngayChot: decl.ngayChot, ngayKeKhai: decl.ngayKeKhai,
+    I: { nguoiKeKhai: decl.nguoi, voChong: decl.coVoChong ? decl.voChong : null, conChuaThanhNien: decl.con },
+    II: Object.fromEntries(GROUPS.map(g => [`${g.sec}_${g.key}`, (decl.ts[g.key] || []).map(it => Object.assign({}, it, { giaTriVND: itemValue(g, it) }))])),
+    II_5_tongTien: groupTotal(decl, MONEY_KEYS), II_6_tongGiayToCoGia: groupTotal(decl, SEC_KEYS),
+    II_10_thuNhap: Object.assign({ kyTinh: incomePeriod(decl, prev) }, incomeTotals(decl), { chiTiet: decl.thuNhap }),
+    III: decl.bienDong, IV: decl.thayDoi
+  };
+}
+
+const API = { APP, NGUONG, NGUONG_BO_SUNG, LUONG_CO_SO_MAC_DINH, PHUONG_THUC, PHUONG_THUC_TEN, GROUPS, GROUP, MONEY_KEYS, SEC_KEYS, DUNG_TEN,
+  uid, num, fmtMoney, fmtVND, fmtDate, todayISO, addDays, clone, blank, docSo, ordName, ageAt,
+  newDecl, newHoSo, newItem, emptyChild, itemValue, groupTotal, incomeTotals, netWorth, calcSalary, monthsBetween, incomePeriod,
+  compareDecls, applyBienDongSuggest, rollForward, normalizeDecl, review,
+  buildDeclDoc, buildListDoc, buildTrackDoc, buildCommentDoc, buildDocx, blocksToHtml, zip, crc32,
+  encryptJSON, decryptJSON, isEncrypted, cryptoOK, exportStructured };
+if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.KK = API;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* Kê khai TSTN — Giao diện. © Lê Quang Trọng, đảo Phú Quý */
+(function () {
+'use strict';
+const K = window.KK;
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const DB_KEY = 'KKTSTN_DB_V1', DB_ENC_KEY = 'KKTSTN_DB_V1_ENC';
+
+// ------------------------------------------------------------------ STATE
+let db = null, sessionPw = null, dirty = false, saveTimer = null, fileHandles = {};
+let ui = { mode: 'kekhai', page: 'ky', openItems: {} };
+const dmPw = {}; // mật khẩu file của đầu mối: chỉ giữ trong bộ nhớ phiên, không lưu xuống máy
+
+function defaultDB() {
+  return { v: 1, createdAt: new Date().toISOString(), settings: { lcs: K.clone(K.LUONG_CO_SO_MAC_DINH), hanNop: '', fontSize: 13, soBan: 2, keKhaiDuoiNguong: false, lock: false, lastBackup: '' }, hoso: [], cur: { hosoId: null, declId: null }, dauMoi: { meta: { donVi: '', nam: new Date().getFullYear(), nguoiKy: '', chucDanhKy: 'Thủ trưởng đơn vị', diaDanh: '', soBo: 3 }, items: [] } };
+}
+function loadDB() {
+  try {
+    if (localStorage.getItem(DB_ENC_KEY)) return 'locked';
+    const raw = localStorage.getItem(DB_KEY);
+    db = raw ? JSON.parse(raw) : defaultDB();
+  } catch (e) { console.error(e); db = defaultDB(); }
+  fixDB(); return 'ok';
+}
+function fixDB() {
+  const d = defaultDB();
+  db.settings = Object.assign(d.settings, db.settings || {});
+  db.dauMoi = Object.assign(d.dauMoi, db.dauMoi || {}); db.dauMoi.meta = Object.assign(d.dauMoi.meta, db.dauMoi.meta || {});
+  db.hoso = (db.hoso || []).map(h => Object.assign({ decls: [] }, h, { decls: (h.decls || []).map(K.normalizeDecl) }));
+  db.cur = db.cur || { hosoId: null, declId: null };
+}
+async function persist() {
+  try {
+    const text = JSON.stringify(db);
+    if (db.settings.lock && sessionPw) {
+      localStorage.setItem(DB_ENC_KEY, await K.encryptJSON(db, sessionPw));
+      localStorage.removeItem(DB_KEY);
+    } else { localStorage.setItem(DB_KEY, text); localStorage.removeItem(DB_ENC_KEY); }
+    dirty = false; setSaved('Đã lưu trên máy lúc ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+  } catch (e) { setSaved('⚠ Không lưu được: ' + e.message); toast('Không lưu được vào trình duyệt. Hãy dùng "Lưu ra file" để không mất dữ liệu.'); }
+}
+function touch() { dirty = true; const d = curDecl(); if (d) d.updatedAt = new Date().toISOString(); setSaved('Đang lưu…'); clearTimeout(saveTimer); saveTimer = setTimeout(() => { persist(); refreshBadges(); }, 500); }
+function setSaved(t) { const el = $('#saved'); if (el) el.textContent = t; }
+window.addEventListener('beforeunload', e => { if (dirty) { persist(); e.preventDefault(); e.returnValue = ''; } });
+
+const curHoSo = () => db.hoso.find(h => h.id === db.cur.hosoId) || null;
+const curDecl = () => { const h = curHoSo(); return h ? h.decls.find(d => d.id === db.cur.declId) || null : null; };
+function prevOf(h, d) {
+  if (!h || !d) return null;
+  if (d.prevId) { const p = h.decls.find(x => x.id === d.prevId); if (p) return p; }
+  const sorted = h.decls.filter(x => x.id !== d.id && (x.ngayChot || '') < (d.ngayChot || '9999')).sort((a, b) => (a.ngayChot || '').localeCompare(b.ngayChot || ''));
+  return sorted.length && d.ngayChot ? sorted[sorted.length - 1] : null;
+}
+const curPrev = () => prevOf(curHoSo(), curDecl());
+
+// ------------------------------------------------------------------ PATH BINDING
+function getPath(obj, path) { return path.split('.').reduce((o, k) => o == null ? o : (k[0] === '#' ? (o.find(x => x.id === k.slice(1))) : o[k]), obj); }
+function setPath(obj, path, val) {
+  const ks = path.split('.'); const last = ks.pop();
+  const tgt = getPath(obj, ks.join('.')) ?? obj; if (!ks.length) { obj[last] = val; return; }
+  tgt[last] = val;
+}
+
+// ------------------------------------------------------------------ TOAST / MODAL
+function toast(msg, ms = 2800) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+function modal(title, bodyHtml, buttons = [], cls = '') {
+  return new Promise(res => {
+    const m = document.createElement('div'); m.className = 'modal ' + cls;
+    m.innerHTML = `<div class="box"><div class="mh"><h2>${title}</h2><button class="btn ghost" data-x>✕</button></div><div class="mb">${bodyHtml}</div><div class="mf">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${b.label}</button>`).join('')}</div></div>`;
+    document.body.appendChild(m);
+    const close = v => { m.remove(); res(v); };
+    m.addEventListener('click', e => {
+      if (e.target.matches('[data-x]') || e.target === m) close(null);
+      const b = e.target.closest('[data-i]'); if (b) { const btn = buttons[+b.dataset.i]; const v = btn.value !== undefined ? btn.value : true; if (btn.onClick) { const r = btn.onClick(m); if (r === false) return; close(r === undefined ? v : r); } else close(v); }
+    });
+    const first = m.querySelector('input,textarea,select'); if (first) setTimeout(() => first.focus(), 50);
+    m.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { const pri = m.querySelector('.mf .btn.pri'); if (pri) pri.click(); } });
+    if (buttons.length === 0) m.querySelector('.mf').remove();
+    m._close = close;
+  });
+}
+const confirmBox = (title, msg, okLabel = 'Đồng ý', dang = false) => modal(title, `<p>${msg}</p>`, [{ label: 'Huỷ', value: false }, { label: okLabel, cls: dang ? 'dang' : 'pri', value: true }], 'sm');
+function askPassword(title, msg, confirm2 = false) {
+  return modal(title, `<p class="small">${msg}</p><label class="f">Mật khẩu<input type="password" id="pw1" autocomplete="new-password"></label>${confirm2 ? '<label class="f" style="margin-top:8px">Nhập lại mật khẩu<input type="password" id="pw2" autocomplete="new-password"></label>' : ''}`,
+    [{ label: 'Huỷ', value: null }, { label: 'Đồng ý', cls: 'pri', onClick: m => { const a = $('#pw1', m).value; if (confirm2 && a !== $('#pw2', m).value) { toast('Hai lần nhập mật khẩu không khớp'); return false; } if (confirm2 && a && a.length < 6) { toast('Mật khẩu tối thiểu 6 ký tự'); return false; } return a; } }], 'sm');
+}
+
+// ------------------------------------------------------------------ FILE I/O
+async function saveBlob(blob, name, handleKey) {
+  if (window.showSaveFilePicker) {
+    try {
+      let h = handleKey && fileHandles[handleKey];
+      if (!h) { const ext = name.split('.').pop(); h = await window.showSaveFilePicker({ suggestedName: name, types: [{ description: ext.toUpperCase(), accept: { [blob.type || 'application/octet-stream']: ['.' + ext] } }] }); if (handleKey) fileHandles[handleKey] = h; }
+      const w = await h.createWritable(); await w.write(blob); await w.close(); return true;
+    } catch (e) { if (e.name === 'AbortError') return false; console.warn(e); }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); return true;
+}
+function pickFiles(accept, multiple = false) {
+  return new Promise(res => { const i = document.createElement('input'); i.type = 'file'; i.accept = accept; i.multiple = multiple; i.onchange = () => res([...i.files]); i.click(); });
+}
+const readText = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsText(f); });
+const safeName = s => (s || 'ke-khai').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_');
+
+async function openTstnText(text, fileName) {
+  let pw = null, data = null;
+  for (let tries = 0; tries < 3; tries++) {
+    try { data = await K.decryptJSON(text, pw); break; }
+    catch (e) {
+      if (e.needPw || e.badPw) { pw = await askPassword(e.badPw ? 'Sai mật khẩu — thử lại' : 'File được mã hoá', `Nhập mật khẩu để mở <b>${esc(fileName)}</b>.`); if (pw === null) return null; }
+      else { toast(e.message); return null; }
+    }
+  }
+  return data ? { data, pw } : null;
+}
+
+// ------------------------------------------------------------------ PAGES
+const PAGES = [
+  { id: 'ky', label: 'Kỳ kê khai', group: 'Chuẩn bị' },
+  { id: 'nguoi', label: 'I.1 Người kê khai', group: 'I. Thông tin chung' },
+  { id: 'vochong', label: 'I.2 Vợ hoặc chồng', group: 'I. Thông tin chung' },
+  { id: 'con', label: 'I.3 Con chưa thành niên', group: 'I. Thông tin chung' },
+  { id: 'dat', label: '1. Quyền sử dụng đất', group: 'II. Tài sản', groups: ['datO', 'datKhac'] },
+  { id: 'nha', label: '2. Nhà ở, công trình', group: 'II. Tài sản', groups: ['nhaO', 'congTrinh'] },
+  { id: 'ganDat', label: '3. Tài sản gắn liền với đất', group: 'II. Tài sản', groups: ['cayLauNam', 'rung', 'vatKienTruc'] },
+  { id: 'klq', label: '4. Vàng, kim loại quý, đá quý', group: 'II. Tài sản', groups: ['kimLoaiQuy'] },
+  { id: 'tien', label: '5. Tiền', group: 'II. Tài sản', groups: ['tienMat', 'tienChoVay', 'tienTraTruoc', 'taiKhoan', 'soTietKiem', 'tienGuiKhac'] },
+  { id: 'ck', label: '6. Cổ phiếu, trái phiếu, vốn góp', group: 'II. Tài sản', groups: ['coPhieu', 'traiPhieu', 'vonGop', 'giayToCoGia'] },
+  { id: 'khac', label: '7. Tài sản khác', group: 'II. Tài sản', groups: ['tsDangKy', 'tsKhac'] },
+  { id: 'nn', label: '8–9. Ở nước ngoài', group: 'II. Tài sản', groups: ['tsNuocNgoai', 'tkNuocNgoai'] },
+  { id: 'thunhap', label: '10. Tổng thu nhập', group: 'II. Tài sản' },
+  { id: 'no', label: '11. Các khoản nợ', group: 'II. Tài sản', groups: ['no'] },
+  { id: 'biendong', label: 'III. Biến động, giải trình', group: 'III–IV' },
+  { id: 'thaydoi', label: 'IV. Thay đổi, bổ sung', group: 'III–IV' },
+  { id: 'xuat', label: '✔ Rà soát & Xuất bản kê khai', group: 'Hoàn thành' }
+];
+const NAV_OF = {}; PAGES.forEach(p => { NAV_OF[p.id] = p.id; (p.groups || []).forEach(g => NAV_OF[g] = p.id); });
+
+// ------------------------------------------------------------------ FIELD RENDER
+function fld(path, label, val, o = {}) {
+  const t = o.t || 'text'; const h = o.hint ? `<span class="h">${esc(o.hint)}</span>` : '';
+  const cls = o.full ? 'f full' : 'f';
+  if (t === 'area') return `<label class="${cls}">${esc(label)}${h}<textarea data-b="${path}" rows="${o.rows || 2}">${esc(val)}</textarea></label>`;
+  if (t === 'select') return `<label class="${cls}">${esc(label)}${h}<select data-b="${path}">${o.opts.map(x => `<option ${x === val ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>`;
+  if (t === 'date') return `<label class="${cls}">${esc(label)}${h}<input type="date" data-b="${path}" value="${esc(val)}"></label>`;
+  if (t === 'money') return `<label class="${cls}">${esc(label)}${h}<input type="text" inputmode="numeric" data-b="${path}" data-money value="${val ? esc(K.fmtMoney(K.num(val))) : ''}" placeholder="0"><span class="money-read">${val && K.num(val) ? esc(K.docSo(K.num(val))) : ''}</span></label>`;
+  if (t === 'num') return `<label class="${cls}">${esc(label)}${h}<input type="text" inputmode="decimal" data-b="${path}" value="${esc(val)}"></label>`;
+  return `<label class="${cls}">${esc(label)}${h}<input type="text" data-b="${path}" value="${esc(val)}" ${o.ph ? `placeholder="${esc(o.ph)}"` : ''}></label>`;
+}
+function fxField(path, f, it) {
+  const cur = it[f.k + '_cur'] || 'VND';
+  const curs = ['VND', 'USD', 'EUR', 'JPY', 'CNY', 'KRW', 'AUD', 'GBP', 'SGD', 'THB', 'Khác'];
+  const vnd = K.itemValue({ fields: [f] }, it);
+  return `<div class="full" style="display:grid;grid-template-columns:110px 1fr 1fr;gap:10px;align-items:start">
+    <label class="f">Loại tiền<select data-b="${path}.${f.k}_cur" data-rerender>${curs.map(c => `<option ${c === cur ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+    ${cur === 'VND' ? fld(`${path}.${f.k}`, f.l, it[f.k], { t: 'money', hint: f.hint }) :
+      `<label class="f">Số lượng ngoại tệ (${esc(cur)})<input type="text" inputmode="decimal" data-b="${path}.${f.k}_fx" data-fx value="${esc(it[f.k + '_fx'])}"></label>
+       <label class="f">Tỷ giá liên ngân hàng tại thời điểm sở hữu (đồng/1 ${esc(cur)})<input type="text" inputmode="decimal" data-b="${path}.${f.k}_rate" data-fx value="${esc(it[f.k + '_rate'])}"><span class="money-read" data-fxout>Quy đổi: ${K.fmtVND(vnd)}</span></label>`}
+  </div>`;
+}
+function itemFields(g, it) {
+  const path = `ts.${g.key}.#${it.id}`;
+  let html = '<div class="grid">';
+  g.fields.forEach(f => {
+    if (f.t === 'fx') { html += fxField(path, f, it); return; }
+    if (f.k === 'giaTri' && f.unknown) {
+      html += `<div>${it.giaTri_unk ? `<label class="f">Giá trị<input type="text" value="Không xác định được giá trị" disabled></label>` : fld(`${path}.giaTri`, f.l, it.giaTri, { t: 'money', hint: f.hint })}
+        <label class="chk" style="margin-top:4px"><input type="checkbox" data-b="${path}.giaTri_unk" data-rerender ${it.giaTri_unk ? 'checked' : ''}> Không xác định được giá trị</label>
+        ${it.giaTri_unk ? fld(`${path}.giaTri_unkReason`, 'Lý do không xác định được giá trị', it.giaTri_unkReason, { t: 'text' }) : ''}</div>`;
+      return;
+    }
+    const full = f.t === 'area' || ['diaChi', 'diaChiCu', 'gcn', 'moTa', 'nganHang', 'loai', 'hinhThuc'].includes(f.k);
+    html += fld(`${path}.${f.k}`, f.l, it[f.k], { t: f.t, opts: f.opts, hint: f.hint, full });
+  });
+  return html + '</div>';
+}
+function itemTitle(g, it, i) {
+  const main = it.diaChi || it.ten || it.tenGoi || it.loai || it.loaiCay || it.loaiRung || it.loaiDat || it.soTK || it.hinhThuc || it.moTa || it.chuNo || it.benVay || it.noiDung || '';
+  return `${g.item} thứ ${K.ordName(i)}${main ? ' — ' + main : ''}`;
+}
+function groupCard(key) {
+  const g = K.GROUP[key]; const d = curDecl(); const items = d.ts[key];
+  const total = items.reduce((s, it) => s + K.itemValue(g, it), 0);
+  const parent = g.parent ? `<span class="mut small">${esc(g.parent)} › </span>` : '';
+  return `<div class="card" id="g-${key}">
+    <div class="card-h"><div>${parent}<h3 style="display:inline"><span class="sec">${g.sec}</span>${esc(g.title)}</h3></div>
+    <div class="row">${g.novalue ? '' : `<span class="mut small">Tổng: <b>${K.fmtVND(total)}</b></span>`}<button class="btn sm pri" data-act="add" data-g="${key}">+ Thêm ${g.item.toLowerCase()}</button></div></div>
+    ${g.desc ? `<p class="desc">${esc(g.desc)}</p>` : ''}
+    ${items.length ? items.map((it, i) => `<div class="item ${ui.openItems[it.id] ? 'open' : ''}" data-item="${it.id}">
+       <div class="item-h" data-act="toggle" data-id="${it.id}"><span>${ui.openItems[it.id] ? '▾' : '▸'}</span><span class="t">${esc(itemTitle(g, it, i))}</span>${g.novalue ? '' : `<span class="v">${it.giaTri_unk ? 'Không xác định' : K.fmtVND(K.itemValue(g, it))}</span>`}
+       <button class="btn sm ghost" data-act="dup" data-g="${key}" data-id="${it.id}" title="Nhân bản">⧉</button><button class="btn sm ghost dang" data-act="del" data-g="${key}" data-id="${it.id}" title="Xoá">✕</button></div>
+       <div class="item-b">${ui.openItems[it.id] ? itemFields(g, it) : ''}</div></div>`).join('') : `<div class="empty">Chưa có — khi xuất sẽ ghi "Không có".</div>`}
+  </div>`;
+}
+
+// ------------------------------------------------------------------ PAGE RENDERERS
+function pageKy(d) {
+  const h = curHoSo(), prev = curPrev();
+  return `<h1>Kỳ kê khai</h1><p class="sub">Chọn phương thức kê khai theo Điều 36 Luật Phòng, chống tham nhũng. Cả 4 phương thức dùng chung một mẫu (Phụ lục NĐ 164/2026/NĐ-CP).</p>
+  <div class="card"><div class="pt">${Object.entries(K.PHUONG_THUC_TEN).map(([k, v]) => `<label class="${d.phuongThuc === k ? 'on' : ''}"><input type="radio" name="pt" data-b="phuongThuc" value="${k}" data-rerender ${d.phuongThuc === k ? 'checked' : ''}><b>${v}</b>${{
+    lan_dau: 'Lần đầu giữ vị trí phải kê khai; không kê khai thu nhập và Mục III.',
+    hang_nam: 'Người thuộc danh mục kê khai hằng năm; hoàn thành trước 31/12.',
+    bo_sung: 'Có biến động tài sản, thu nhập trong năm từ 1 tỷ đồng trở lên (người không kê khai hằng năm).',
+    can_bo: 'Dự kiến bầu, phê chuẩn, bổ nhiệm, cử giữ chức vụ khác.' }[k]}</label>`).join('')}</div></div>
+  <div class="card"><div class="grid g3">
+    ${fld('nam', 'Năm kê khai', d.nam, { t: 'num' })}
+    ${fld('ngayChot', 'Ngày chốt thông tin, dữ liệu', d.ngayChot, { t: 'date', hint: 'Ngày cơ quan kiểm soát lấy làm căn cứ đối chiếu (chú thích 2)' })}
+    ${fld('ngayKeKhai', 'Ngày hoàn thành kê khai, nộp', d.ngayKeKhai, { t: 'date', hint: 'Dùng làm mốc cuối kỳ tính thu nhập' })}
+    ${d.phuongThuc !== 'lan_dau' ? (prev ? `<div class="full note ok">Kỳ liền trước trong ứng dụng: <b>${esc(K.PHUONG_THUC_TEN[prev.phuongThuc])} ${prev.nam}</b>, kê khai ngày ${K.fmtDate(prev.ngayKeKhai || prev.ngayChot)}. Ứng dụng tự so sánh để lập Mục III và tính kỳ thu nhập.</div>`
+      : fld('ngayKeKhaiTruoc', 'Ngày kê khai của lần liền trước', d.ngayKeKhaiTruoc, { t: 'date', hint: 'Chưa có kỳ trước trong ứng dụng — ghi ngày trên bản kê khai năm trước để tính kỳ thu nhập' })) : ''}
+    ${fld('tenCoQuanDauTrang', 'Tên cơ quan, đơn vị (góc trên bên trái)', d.tenCoQuanDauTrang, { t: 'area', hint: 'Mỗi dòng một cấp, VD: SỞ GIÁO DỤC VÀ ĐÀO TẠO ↵ TRƯỜNG THPT NGÔ QUYỀN. Dòng cuối in đậm.', full: true })}
+    ${fld('quocHieu', 'Quốc hiệu, tiêu ngữ', d.quocHieu === 'dang' ? 'Cơ quan của Đảng (ĐẢNG CỘNG SẢN VIỆT NAM)' : 'Cơ quan nhà nước, đơn vị sự nghiệp', { t: 'select', opts: ['Cơ quan nhà nước, đơn vị sự nghiệp', 'Cơ quan của Đảng (ĐẢNG CỘNG SẢN VIỆT NAM)'] })}
+    ${fld('diaDanh', 'Địa danh ghi ở phần ký', d.diaDanh, { ph: 'VD: Phú Quý' })}
+  </div></div>
+  <div class="note info"><b>Ai phải kê khai hằng năm?</b> Theo Điều 10 NĐ 164/2026: người giữ chức vụ từ Trưởng phòng và tương đương có phụ cấp chức vụ từ 0,25 trở lên trong cơ quan nhà nước; Trưởng phòng trở lên tại doanh nghiệp nhà nước ở vị trí phụ trách tổ chức cán bộ, tài chính công, tài sản công, đầu tư công hoặc trực tiếp giải quyết công việc; người đại diện phần vốn nhà nước — theo danh mục do Bộ trưởng, Chủ tịch UBND cấp tỉnh ban hành. Ngưỡng kê khai từng loại tài sản: <b>từ 150 triệu đồng</b>; kê khai bổ sung khi biến động <b>từ 1 tỷ đồng</b> (Luật 132/2025/QH15).</div>
+  ${nextPrev()}`;
+}
+function pageNguoi(d) {
+  const p = 'nguoi'; const n = d.nguoi;
+  return `<h1>I.1 Người kê khai tài sản, thu nhập</h1><p class="sub">Ghi đầy đủ; không bỏ trống.</p><div class="card"><div class="grid">
+    ${fld(p + '.hoTen', 'Họ và tên', n.hoTen)}${fld(p + '.ngaySinh', 'Ngày, tháng, năm sinh', n.ngaySinh, { t: 'date' })}
+    ${fld(p + '.queQuan', 'Quê quán', n.queQuan, { full: true })}
+    ${fld(p + '.noiThuongTru', 'Nơi thường trú', n.noiThuongTru, { full: true, hint: 'Theo đơn vị hành chính hiện hành (đã bỏ cấp huyện từ 01/7/2025)' })}
+    ${fld(p + '.noiOHienNay', 'Nơi ở hiện nay', n.noiOHienNay, { full: true })}
+    ${fld(p + '.chucVu', 'Chức vụ/chức danh', n.chucVu)}${fld(p + '.heSoPhuCap', 'Hệ số phụ cấp chức vụ', n.heSoPhuCap, { t: 'num', ph: 'VD: 0,4' })}
+    ${fld(p + '.coQuan', 'Cơ quan, đơn vị công tác', n.coQuan, { full: true })}
+    ${fld(p + '.soDinhDanh', 'Số thẻ căn cước/Số CCCD/Số định danh cá nhân', n.soDinhDanh, { ph: '12 chữ số' })}${fld(p + '.soDienThoai', 'Số điện thoại', n.soDienThoai)}
+    ${fld(p + '.ngayCap', 'Ngày cấp', n.ngayCap, { t: 'date' })}${fld(p + '.noiCap', 'Nơi cấp', n.noiCap, { ph: 'VD: Bộ Công an' })}
+  </div></div>${nextPrev()}`;
+}
+function pageVoChong(d) {
+  const p = 'voChong'; const n = d.voChong;
+  return `<h1>I.2 Vợ hoặc chồng của người kê khai</h1><div class="card"><label class="chk"><input type="checkbox" data-b="coVoChong" data-rerender ${d.coVoChong ? 'checked' : ''}> Người kê khai có vợ/chồng (theo quy định của pháp luật)</label></div>
+  ${d.coVoChong ? `<div class="card"><div class="grid">
+    ${fld(p + '.hoTen', 'Họ và tên', n.hoTen)}${fld(p + '.ngaySinh', 'Ngày, tháng, năm sinh', n.ngaySinh, { t: 'date' })}
+    ${fld(p + '.queQuan', 'Quê quán', n.queQuan, { full: true })}${fld(p + '.noiThuongTru', 'Nơi thường trú', n.noiThuongTru, { full: true })}${fld(p + '.noiOHienNay', 'Nơi ở hiện nay', n.noiOHienNay, { full: true })}
+    ${fld(p + '.ngheNghiep', 'Chức vụ/chức danh/nghề nghiệp, công việc đang làm', n.ngheNghiep, { hint: 'Kinh doanh tự do, nghỉ hưu, nội trợ... thì ghi rõ' })}${fld(p + '.heSoPhuCap', 'Hệ số phụ cấp chức vụ (nếu có)', n.heSoPhuCap, { t: 'num' })}
+    ${fld(p + '.noiLamViec', 'Cơ quan, đơn vị công tác, nơi làm việc', n.noiLamViec, { full: true })}
+    ${fld(p + '.soDinhDanh', 'Số thẻ căn cước/CCCD/Số định danh cá nhân', n.soDinhDanh)}${fld(p + '.soDienThoai', 'Số điện thoại', n.soDienThoai)}
+    ${fld(p + '.ngayCap', 'Ngày cấp', n.ngayCap, { t: 'date' })}${fld(p + '.noiCap', 'Nơi cấp', n.noiCap)}
+  </div></div>` : '<div class="empty">Khi xuất, mục 2 sẽ ghi "Không có".</div>'}${nextPrev()}`;
+}
+function pageCon(d) {
+  return `<h1>I.3 Con chưa thành niên</h1><p class="sub">Con đẻ, con nuôi theo quy định của pháp luật, chưa đủ 18 tuổi tại ngày chốt thông tin.</p>
+  ${d.con.map((c, i) => `<div class="card"><div class="card-h"><h3>3.${i + 1}. Con thứ ${K.ordName(i)}</h3><button class="btn sm dang" data-act="delCon" data-id="${c.id}">Xoá</button></div><div class="grid">
+    ${fld(`con.#${c.id}.hoTen`, 'Họ và tên', c.hoTen)}${fld(`con.#${c.id}.ngaySinh`, 'Ngày, tháng, năm sinh', c.ngaySinh, { t: 'date' })}
+    ${fld(`con.#${c.id}.noiThuongTru`, 'Nơi thường trú', c.noiThuongTru, { full: true })}${fld(`con.#${c.id}.noiOHienNay`, 'Nơi ở hiện nay', c.noiOHienNay, { full: true })}
+    ${fld(`con.#${c.id}.soDinhDanh`, 'Số định danh cá nhân/Số thẻ căn cước', c.soDinhDanh)}${fld(`con.#${c.id}.ngayCap`, 'Ngày cấp', c.ngayCap, { t: 'date' })}${fld(`con.#${c.id}.noiCap`, 'Nơi cấp', c.noiCap)}
+  </div></div>`).join('') || '<div class="empty card">Chưa có con chưa thành niên — khi xuất sẽ ghi "Không có".</div>'}
+  <button class="btn pri" data-act="addCon">+ Thêm con</button>${nextPrev()}`;
+}
+function pageGroups(pg) {
+  const d = curDecl(); let extra = '';
+  if (pg.id === 'tien') { const t = K.groupTotal(d, K.MONEY_KEYS); extra = `<div class="note ${t >= K.NGUONG ? 'ok' : 'info'}">Tổng tiền (5.1–5.4): <b>${K.fmtVND(t)}</b>. ${t >= K.NGUONG ? 'Từ 150 triệu đồng trở lên — phải kê khai mục 5.' : 'Dưới 150 triệu đồng — không bắt buộc kê khai; khi xuất mục 5 ghi "Không có" (trừ khi bật kê khai cả dưới ngưỡng ở trang Rà soát & Xuất).'} Ngoại tệ quy đổi theo tỷ giá liên ngân hàng tại thời điểm sở hữu/cho vay/trả trước/gửi.</div>`; }
+  if (pg.id === 'ck') { const t = K.groupTotal(d, K.SEC_KEYS); extra = `<div class="note ${t >= K.NGUONG ? 'ok' : 'info'}">Tổng mục 6: <b>${K.fmtVND(t)}</b> — ngưỡng kê khai là tổng giá trị từ 150 triệu đồng.</div>`; }
+  if (pg.id === 'klq') extra = `<div class="note info">Kê khai khi mỗi loại có tổng giá trị từ 150 triệu đồng. Vật trang sức ghép từ nhiều thành phần kê khai cả vật, không tách riêng (ví dụ ở chú thích 19 của mẫu).</div>`;
+  if (pg.id === 'khac') extra = `<div class="note info">Chỉ kê khai tài sản mỗi loại có giá trị từ 150 triệu đồng. Bộ tài sản ghép (bộ bàn ghế, bộ sưu tập...) tổng trên 150 triệu thì kê khai cả bộ.</div>`;
+  if (pg.id === 'dat' || pg.id === 'nha') extra = `<div class="note info">Đất, nhà, công trình kê khai <b>không phụ thuộc ngưỡng giá trị</b>. Địa chỉ ghi theo đơn vị hành chính sau sáp nhập (01/7/2025); nếu Giấy chứng nhận còn địa chỉ cũ thì ghi thêm. Giá trị ghi theo thời điểm hình thành (mua: giá thực trả + thuế, phí).</div>`;
+  return `<h1>${esc(pg.label)}</h1>${extra}${pg.groups.map(groupCard).join('')}${nextPrev()}`;
+}
+function calcBlock(pfx, c, per) {
+  const s = db.settings; const r = per && per.tu && per.den ? K.calcSalary(c, per.tu, per.den, s.lcs) : null;
+  return `<table class="t calc"><tr>
+    <td>${fld(pfx + '.heSoLuong', 'Hệ số lương', c.heSoLuong, { t: 'num' })}</td><td>${fld(pfx + '.heSoPCCV', 'Hệ số PC chức vụ', c.heSoPCCV, { t: 'num' })}</td><td>${fld(pfx + '.heSoTNVK', 'Hệ số thâm niên vượt khung', c.heSoTNVK, { t: 'num' })}</td></tr><tr>
+    <td>${fld(pfx + '.pctUuDai', '% PC ưu đãi nghề', c.pctUuDai, { t: 'num', ph: 'VD: 35, 50, 70' })}</td><td>${fld(pfx + '.pctThamNien', '% PC thâm niên nghề', c.pctThamNien, { t: 'num' })}</td><td>${fld(pfx + '.heSoKhuVuc', 'Hệ số PC khu vực', c.heSoKhuVuc, { t: 'num' })}</td></tr><tr>
+    <td>${fld(pfx + '.heSoKhac', 'Hệ số PC khác (theo LCS)', c.heSoKhac, { t: 'num' })}</td><td>${fld(pfx + '.khoanThangKhac', 'Khoản cố định khác/tháng (đồng)', c.khoanThangKhac, { t: 'money' })}</td><td>${fld(pfx + '.thuong', 'Thưởng, thu nhập tăng thêm cả kỳ (đồng)', c.thuong, { t: 'money' })}</td></tr></table>
+    ${r ? `<table class="t" style="margin-top:8px"><tr><th>Giai đoạn</th><th class="n">Lương cơ sở</th><th class="n">Số tháng</th><th class="n">Thu nhập/tháng</th><th class="n">Thành tiền</th></tr>
+    ${r.rows.map(x => `<tr><td>${K.fmtDate(x.tu)} – ${K.fmtDate(x.den)} <span class="mut small">(${esc(x.cancu)})</span></td><td class="n">${K.fmtMoney(x.muc)}</td><td class="n">${x.thang.toFixed(2)}</td><td class="n">${K.fmtMoney(x.monthly)}</td><td class="n">${K.fmtMoney(x.amount)}</td></tr>`).join('')}
+    <tr><td colspan="4"><b>Ước tính tổng (gồm thưởng)</b> <span class="mut small">— hệ số tổng ${r.hs.toFixed(3)}; chưa trừ BHXH, BHYT, thuế</span></td><td class="n"><b>${K.fmtMoney(r.total)}</b></td></tr></table>` : '<p class="mut small">Cần ngày bắt đầu và kết thúc kỳ để tính.</p>'}`;
+}
+function pageThuNhap(d) {
+  if (d.phuongThuc === 'lan_dau') return `<h1>10. Tổng thu nhập giữa hai lần kê khai</h1><div class="note info">Kê khai lần đầu không phải kê khai tổng thu nhập (chú thích 1 của mẫu).</div>${nextPrev()}`;
+  const per = K.incomePeriod(d, curPrev()); const inc = K.incomeTotals(d); const t = d.thuNhap;
+  return `<h1>10. Tổng thu nhập giữa hai lần kê khai</h1>
+  <div class="note ${per && per.tu ? 'ok' : 'warn'}">${per && per.tu ? `Kỳ tính thu nhập: <b>từ ${K.fmtDate(per.tu)} đến ${K.fmtDate(per.den) || '(chưa có ngày hoàn thành kê khai)'}</b> — tính từ ngày kế tiếp sau ngày kê khai lần trước đến ngày kê khai lần này (chú thích 33).` : 'Chưa xác định được kỳ tính thu nhập — vào trang "Kỳ kê khai" ghi ngày kê khai lần liền trước và ngày hoàn thành kê khai lần này.'}</div>
+  <div class="card"><div class="card-h"><h3>Trợ lý tính thu nhập từ lương — người kê khai</h3><button class="btn sm ok" data-act="fillSalary" data-who="ban">Điền kết quả vào ô lương ↓</button></div>
+  <p class="desc">Tự áp lương cơ sở theo từng giai đoạn (sửa bảng trong Cài đặt). Công thức: [(HS lương + PCCV + TNVK) × (1 + %ưu đãi + %thâm niên) + PC khu vực + PC khác] × lương cơ sở + khoản cố định khác. Đây là số ước tính — hãy đối chiếu với bảng lương/sao kê thực nhận.</p>
+  ${calcBlock('thuNhap.calc', t.calc, per)}</div>
+  <div class="card"><h3 style="margin-bottom:10px">Thu nhập của người kê khai</h3><div class="grid">
+    ${fld('thuNhap.ban.luong', 'Thu nhập từ lương, phụ cấp, trợ cấp (đồng)', t.ban.luong, { t: 'money' })}
+    ${fld('thuNhap.ban.khac', 'Thu nhập từ kinh doanh hoặc nguồn khác (đồng)', t.ban.khac, { t: 'money', hint: 'Đầu tư, chuyển nhượng BĐS/chứng khoán, cho thuê, được cho/tặng/thừa kế, thù lao, bán tài sản...' })}
+    ${fld('thuNhap.ban.khacGhiChu', 'Diễn giải nguồn khác', t.ban.khacGhiChu, { full: true })}
+  </div></div>
+  ${d.coVoChong ? `<div class="card"><div class="card-h"><h3>Thu nhập của vợ/chồng</h3><button class="btn sm ok" data-act="fillSalary" data-who="voChong">Điền từ trợ lý ↓</button></div>
+    <details><summary class="small" style="cursor:pointer;margin-bottom:8px">Trợ lý tính lương cho vợ/chồng (nếu hưởng lương theo hệ số)</summary>${calcBlock('thuNhap.calcVoChong', t.calcVoChong, per)}</details>
+    <div class="grid">${fld('thuNhap.voChong.luong', 'Thu nhập từ lương, phụ cấp, trợ cấp, tiền công (đồng)', t.voChong.luong, { t: 'money' })}${fld('thuNhap.voChong.khac', 'Thu nhập từ kinh doanh hoặc nguồn khác (đồng)', t.voChong.khac, { t: 'money' })}${fld('thuNhap.voChong.khacGhiChu', 'Diễn giải', t.voChong.khacGhiChu, { full: true })}</div></div>` : ''}
+  <div class="card"><div class="grid">
+    ${fld('thuNhap.con', 'Thu nhập của con chưa thành niên (đồng)', t.con, { t: 'money' })}${fld('thuNhap.conGhiChu', 'Diễn giải', t.conGhiChu)}
+    ${fld('thuNhap.chung', 'Các khoản thu nhập chung không tách riêng được (đồng)', t.chung, { t: 'money' })}${fld('thuNhap.chungGhiChu', 'Diễn giải', t.chungGhiChu)}
+  </div></div>
+  <div class="kpis"><div class="kpi"><span>Người kê khai</span><b>${K.fmtMoney(inc.ban)}</b></div><div class="kpi"><span>Vợ/chồng</span><b>${K.fmtMoney(inc.vc)}</b></div><div class="kpi"><span>Con + chung</span><b>${K.fmtMoney(inc.con + inc.chung)}</b></div><div class="kpi"><span>Tổng thu nhập</span><b style="color:var(--ok)">${K.fmtMoney(inc.tong)}</b></div></div>
+  ${nextPrev()}`;
+}
+function bdRows(arr, kind) {
+  return arr.map((x, i) => `<div class="item open"><div class="item-h"><span class="t">${kind === 'tang' ? '1' : '2'}.${i + 1}. ${esc(x.moTa || '(chưa mô tả)')}</span>${x.auto ? '<span class="badge b-ok" title="Gợi ý tự động từ so sánh kỳ trước">tự động</span>' : ''}<span class="v">${K.fmtVND(K.num(x.giaTri))}</span><button class="btn sm ghost dang" data-act="delBD" data-kind="${kind}" data-id="${x.id}">✕</button></div>
+    <div class="item-b"><div class="grid">${fld(`bienDong.${kind}.#${x.id}.moTa`, 'Tài sản, thu nhập ' + (kind === 'tang' ? 'tăng' : 'giảm'), x.moTa, { full: true })}${fld(`bienDong.${kind}.#${x.id}.giaTri`, 'Giá trị ' + (kind === 'tang' ? 'tăng' : 'giảm') + ' (đồng)', x.giaTri, { t: 'money' })}
+    ${fld(`bienDong.${kind}.#${x.id}.minhChung`, 'Tài liệu minh chứng (nếu có)', x.minhChung)}
+    ${fld(`bienDong.${kind}.#${x.id}.giaiTrinh`, kind === 'tang' ? 'Giải trình nguồn gốc tài sản, thu nhập tăng thêm' : 'Nguyên nhân tài sản, thu nhập giảm', x.giaiTrinh, { t: 'area', full: true, hint: kind === 'tang' ? 'VD: mua bằng tiền lương tích luỹ + vay ngân hàng X số tiền Y; được bố mẹ tặng; bán thửa đất Z...' : 'VD: bán, tặng cho, chi tiêu sinh hoạt, trả nợ, tài sản xuống giá dưới 150 triệu...' })}</div></div></div>`).join('') || '<div class="empty">Không có.</div>';
+}
+function pageBienDong(d) {
+  if (d.phuongThuc === 'lan_dau') return `<h1>III. Biến động tài sản, thu nhập</h1><div class="note info">Kê khai lần đầu không phải kê khai Mục III.</div>${nextPrev()}`;
+  const prev = curPrev(); const inc = K.incomeTotals(d);
+  let doiSoat = '';
+  if (prev) {
+    const a = K.netWorth(d), b = K.netWorth(prev); const delta = a.net - b.net; const chi = K.num(d.chiTieuUocTinh); const gap = delta - (inc.tong - chi);
+    doiSoat = `<div class="card"><h3>Đối soát dòng tiền</h3><p class="desc">Cách cơ quan kiểm soát nhìn bản kê khai: phần tài sản tăng thêm phải giải thích được bằng thu nhập trong kỳ (sau chi tiêu), khoản vay, bán tài sản hoặc được cho/tặng/thừa kế.</p>
+    <table class="t"><tr><td>Tài sản ròng kỳ trước (tài sản − nợ)</td><td class="n">${K.fmtMoney(b.net)}</td></tr><tr><td>Tài sản ròng kỳ này</td><td class="n">${K.fmtMoney(a.net)}</td></tr><tr><td><b>Tăng (giảm) tài sản ròng</b></td><td class="n"><b>${K.fmtMoney(delta)}</b></td></tr><tr><td>Tổng thu nhập trong kỳ</td><td class="n">${K.fmtMoney(inc.tong)}</td></tr>
+    <tr><td>${fld('chiTieuUocTinh', 'Chi tiêu sinh hoạt ước tính trong kỳ (đồng) — chỉ dùng để đối soát, không in ra', d.chiTieuUocTinh, { t: 'money' })}</td><td></td></tr>
+    <tr><td><b>Phần tăng chưa được thu nhập bù đắp</b></td><td class="n ${gap > 0 && delta > 0 ? 'stat-err' : 'stat-ok'}">${gap > 0 && delta > 0 ? K.fmtMoney(gap) : 'Không có'}</td></tr></table>
+    <p class="small mut">Lưu ý: tài sản tính theo giá trị đã kê khai (giá tại thời điểm hình thành), chỉ các tài sản trên ngưỡng phải kê khai được ghi nhận nên con số mang tính tham khảo.</p></div>`;
+  }
+  return `<h1>III. Biến động tài sản, thu nhập; giải trình</h1>
+  ${prev ? `<div class="note ok row" style="justify-content:space-between"><span>So với kỳ <b>${esc(K.PHUONG_THUC_TEN[prev.phuongThuc])} ${prev.nam}</b> (${K.fmtDate(prev.ngayKeKhai || prev.ngayChot)}). Ứng dụng so từng tài sản để gợi ý; phần giải trình đã ghi được giữ nguyên khi cập nhật.</span><button class="btn pri sm" data-act="suggestBD">↻ Cập nhật gợi ý biến động</button></div>`
+    : `<div class="note warn">Chưa có kỳ trước trong ứng dụng — tự đối chiếu với bản kê khai liền trước để ghi tài sản, thu nhập tăng/giảm. Năm sau ứng dụng sẽ tự làm việc này.</div>`}
+  <div class="card"><div class="card-h"><h3>1. Tài sản, thu nhập tăng</h3><button class="btn sm" data-act="addBD" data-kind="tang">+ Thêm thủ công</button></div>${bdRows(d.bienDong.tang, 'tang')}</div>
+  <div class="card"><div class="card-h"><h3>2. Tài sản, thu nhập giảm</h3><button class="btn sm" data-act="addBD" data-kind="giam">+ Thêm thủ công</button></div>${bdRows(d.bienDong.giam, 'giam')}</div>
+  ${doiSoat}${nextPrev()}`;
+}
+function pageThayDoi(d) {
+  return `<h1>IV. Nội dung thay đổi, bổ sung, điều chỉnh</h1><p class="sub">Ghi thay đổi so với bản kê khai trước: vị trí công tác, tình trạng hôn nhân, con đủ 18 tuổi, tài sản xuống dưới 150 triệu, điều chỉnh theo kết luận xác minh... nêu rõ lý do, kèm tài liệu (chú thích 40).</p>
+  <div class="card">${fld('thayDoi.thongTinChung', '1. Về thông tin chung (người kê khai, vợ/chồng, con chưa thành niên)', d.thayDoi.thongTinChung, { t: 'area', rows: 4, full: true })}</div>
+  <div class="card">${fld('thayDoi.taiSan', '2. Về kê khai tài sản, thu nhập, biến động tăng/giảm', d.thayDoi.taiSan, { t: 'area', rows: 4, full: true })}</div>${nextPrev()}`;
+}
+function findingsHtml(R) {
+  if (!R.length) return '<div class="note ok">Không phát hiện lỗi hay cảnh báo nào.</div>';
+  const order = { loi: 0, canh_bao: 1, goi_y: 2 }; const lb = { loi: 'Lỗi', canh_bao: 'Cảnh báo', goi_y: 'Gợi ý' };
+  return R.slice().sort((a, b) => order[a.level] - order[b.level]).map(f => `<div class="find" data-act="goto" data-nav="${esc(f.nav)}"><span class="lv ${f.level}">${lb[f.level]}</span><div><div class="s">${esc(f.sec)}</div><div class="m">${esc(f.msg)}</div></div></div>`).join('');
+}
+function pageXuat(d) {
+  const R = K.review(d, curPrev(), { hanNop: db.settings.hanNop, lcs: db.settings.lcs });
+  const c = { loi: 0, canh_bao: 0, goi_y: 0 }; R.forEach(f => c[f.level]++);
+  const nw = K.netWorth(d); const s = db.settings;
+  const comments = (d.review.comments || []);
+  return `<h1>Rà soát & Xuất bản kê khai</h1><p class="sub">Công cụ tự rà soát giúp phát hiện thiếu sót trước khi nộp — không thay thế việc kiểm tra, xác minh của cơ quan có thẩm quyền.</p>
+  ${comments.length ? `<div class="note warn"><b>Góp ý từ người tiếp nhận/đầu mối:</b>${comments.map(x => `<div style="margin-top:6px">• <span class="small mut">${new Date(x.at).toLocaleString('vi-VN')} — ${esc(x.by || '')}</span><br>${esc(x.text).replace(/\n/g, '<br>')}</div>`).join('')}</div>` : ''}
+  <div class="kpis"><div class="kpi"><span>Lỗi phải sửa</span><b class="${c.loi ? 'stat-err' : 'stat-ok'}">${c.loi}</b></div><div class="kpi"><span>Cảnh báo nên xem</span><b style="color:var(--warn)">${c.canh_bao}</b></div><div class="kpi"><span>Gợi ý</span><b style="color:var(--info)">${c.goi_y}</b></div><div class="kpi"><span>Tổng tài sản đã khai</span><b>${K.fmtMoney(nw.assets)}</b></div></div>
+  <div class="card" style="padding:0;overflow:hidden">${findingsHtml(R)}</div>
+  <div class="card"><h3 style="margin-bottom:10px">Tuỳ chọn xuất</h3><div class="grid g3">
+    <label class="f">Cỡ chữ bản Word<select data-s="fontSize">${[12, 13, 14].map(x => `<option ${+s.fontSize === x ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
+    <label class="f">Số bản phải nộp<input type="number" min="1" max="5" data-s="soBan" value="${s.soBan}"><span class="h">NĐ 164 quy định 02 bản; theo yêu cầu cơ quan quản lý (VD: Sở GDĐT Lâm Đồng yêu cầu 03 bộ)</span></label>
+    <label class="chk" style="margin-top:22px"><input type="checkbox" data-s="keKhaiDuoiNguong" ${s.keKhaiDuoiNguong ? 'checked' : ''}> Vẫn kê khai tài sản dưới ngưỡng 150 triệu</label>
+  </div></div>
+  <div class="card"><h3 style="margin-bottom:10px">Xuất và nộp</h3><div class="row">
+    <button class="btn" data-act="preview">👁 Xem trước</button>
+    <button class="btn pri" data-act="docx">⬇ Xuất Word (.docx)</button>
+    <button class="btn" data-act="print">🖨 In</button>
+    <button class="btn" data-act="sendFile">🔒 Lưu file gửi đầu mối (.tstn)</button>
+    <button class="btn" data-act="json">{ } Xuất dữ liệu chuẩn hoá (.json)</button>
+  </div>
+  <div class="note info" style="margin:12px 0 0"><b>Trước khi nộp:</b> in ${s.soBan} bản; <b>ký ở từng trang</b>, ký và ghi rõ họ tên ở trang cuối; không tự ý cắt bỏ, đổi thứ tự các mục; mục nào không có ghi "Không có" (ứng dụng đã tự điền). File .json để chuyển sang phần mềm Cơ sở dữ liệu quốc gia về kiểm soát TSTN khi có định dạng nhập chính thức.</div></div>
+  ${nextPrev()}`;
+}
+function nextPrev() {
+  const i = PAGES.findIndex(p => p.id === ui.page);
+  const a = PAGES[i - 1], b = PAGES[i + 1];
+  return `<div class="stepper">${a ? `<button class="btn" data-act="goto" data-nav="${a.id}">← ${esc(a.label)}</button>` : '<span></span>'}${b ? `<button class="btn pri" data-act="goto" data-nav="${b.id}">${esc(b.label)} →</button>` : ''}</div>`;
+}
+
+// ------------------------------------------------------------------ SHELL
+function renderShell() {
+  document.body.innerHTML = `
+  <div id="updBanner"></div>
+  <header class="top"><div class="brand"><div class="logo">TSTN</div><div>${esc(K.APP.name)}<small>NĐ 164/2026/NĐ-CP · v${K.APP.version}</small></div></div>
+    <div class="tabs"><button data-mode="kekhai" class="${ui.mode === 'kekhai' ? 'on' : ''}">Người kê khai</button><button data-mode="daumoi" class="${ui.mode === 'daumoi' ? 'on' : ''}">Đầu mối đơn vị</button></div>
+    <div class="sp"></div><span class="saved" id="saved"></span>
+    <button class="tb" data-act="saveAll" title="Sao lưu toàn bộ dữ liệu ra file">💾 Sao lưu</button>
+    <button class="tb" data-act="openFile" title="Mở file .tstn/.json">📂 Mở file</button>
+    <button class="tb" data-act="settings">⚙ Cài đặt</button>
+    <button class="tb" data-act="about">ⓘ</button></header>
+  <div class="wrap"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+  <div id="printArea"></div>`;
+  bindGlobal(); render();
+  checkBackupReminder();
+}
+function render() {
+  if (ui.mode === 'daumoi') { renderDauMoiSide(); renderDauMoi(); return; }
+  renderSide();
+  const d = curDecl(); const main = $('#main');
+  if (!d) { main.innerHTML = welcome(); return; }
+  const pg = PAGES.find(p => p.id === ui.page) || PAGES[0];
+  const fn = { ky: pageKy, nguoi: pageNguoi, vochong: pageVoChong, con: pageCon, thunhap: pageThuNhap, biendong: pageBienDong, thaydoi: pageThayDoi, xuat: pageXuat }[pg.id];
+  main.innerHTML = (fn ? fn(d) : pageGroups(pg)) + `<div class="foot">${esc(K.APP.copyright)}</div>`;
+}
+function renderSide() {
+  const h = curHoSo(); const d = curDecl();
+  const hsOpts = db.hoso.map(x => `<option value="${x.id}" ${h && x.id === h.id ? 'selected' : ''}>${esc(x.label)}</option>`).join('');
+  const kyOpts = h ? h.decls.slice().sort((a, b) => (b.ngayChot || b.createdAt).localeCompare(a.ngayChot || a.createdAt)).map(x => `<option value="${x.id}" ${d && x.id === d.id ? 'selected' : ''}>${esc(K.PHUONG_THUC_TEN[x.phuongThuc])} ${x.nam}${x.ngayChot ? ' (' + K.fmtDate(x.ngayChot) + ')' : ''}</option>`).join('') : '';
+  let navHtml = '';
+  if (d) {
+    const cnt = badgeCounts(d); let lastG = '';
+    PAGES.forEach(p => { if (p.group !== lastG) { navHtml += `<h4>${esc(p.group)}</h4>`; lastG = p.group; } const c = cnt[p.id] || { loi: 0, canh_bao: 0 }; navHtml += `<a class="${ui.page === p.id ? 'on' : ''}" data-act="goto" data-nav="${p.id}"><span>${esc(p.label)}</span>${c.loi ? `<span class="badge b-err">${c.loi}</span>` : c.canh_bao ? `<span class="badge b-warn">${c.canh_bao}</span>` : ''}</a>`; });
+  }
+  $('#side').innerHTML = `<div class="hs-box"><div class="small mut">Hồ sơ (người kê khai)</div><select id="selHS">${hsOpts || '<option>— chưa có —</option>'}</select>
+    ${h ? `<div class="small mut" style="margin-top:6px">Kỳ kê khai</div><select id="selKy">${kyOpts}</select>` : ''}
+    <div class="row" style="margin-top:8px"><button class="btn sm" data-act="newHS">+ Hồ sơ</button>${h ? `<button class="btn sm" data-act="newKy">+ Kỳ mới</button><button class="btn sm ghost" data-act="hsMenu">⋯</button>` : ''}</div></div>
+    <nav class="nav">${navHtml}</nav>`;
+}
+function badgeCounts(d) {
+  const R = K.review(d, curPrev(), { hanNop: db.settings.hanNop, lcs: db.settings.lcs }); const out = {};
+  R.forEach(f => { const pid = NAV_OF[f.nav] || 'xuat'; out[pid] = out[pid] || { loi: 0, canh_bao: 0 }; if (f.level in out[pid]) out[pid][f.level]++; });
+  return out;
+}
+function refreshBadges() { if (ui.mode === 'kekhai' && curDecl()) { const sc = $('#side').scrollTop; renderSide(); $('#side').scrollTop = sc; } }
+function welcome() {
+  return `<div class="welcome"><h1>Chào mừng đến với ${esc(K.APP.name)}</h1><p class="sub">Ứng dụng giúp lập bản kê khai tài sản, thu nhập đúng mẫu Phụ lục Nghị định 164/2026/NĐ-CP, tự rà soát lỗi và dùng lại dữ liệu cho các năm sau. <b>Toàn bộ dữ liệu chỉ lưu trên máy tính của bạn</b>, không gửi đi đâu.</p>
+  <div class="choice"><div class="card" data-act="newHS"><h3>🧾 Tôi tự kê khai</h3><p class="small mut">Tạo hồ sơ của bạn, nhập theo từng mục của mẫu, xuất file Word để in, ký và nộp.</p></div>
+  <div class="card" data-act="openFile"><h3>📂 Mở dữ liệu đã có</h3><p class="small mut">Mở file .tstn đã lưu năm trước, hoặc file đầu mối gửi trả kèm góp ý.</p></div>
+  <div class="card" data-act="newHS" data-ho="1"><h3>👥 Kê khai hộ / hỗ trợ nhập liệu</h3><p class="small mut">Tạo nhiều hồ sơ cho nhiều người. Người kê khai vẫn phải tự kiểm tra, ký từng trang và chịu trách nhiệm.</p></div>
+  <div class="card" data-act="mode" data-mode="daumoi"><h3>🏢 Đầu mối đơn vị</h3><p class="small mut">Tiếp nhận, rà soát bản kê khai của cán bộ; lập danh sách, sổ theo dõi giao nhận.</p></div></div>
+  <div class="note info" style="margin-top:16px">Mẹo: định kỳ bấm <b>💾 Sao lưu</b> để lưu một bản ra file — phòng khi trình duyệt bị xoá dữ liệu hoặc đổi máy.</div>
+  <div class="foot">${esc(K.APP.copyright)}</div></div>`;
+}
+
+// ------------------------------------------------------------------ EVENTS
+function bindGlobal() {
+  document.body.addEventListener('input', onInput);
+  document.body.addEventListener('change', onChange);
+  document.body.addEventListener('click', onClick);
+}
+function onInput(e) {
+  const el = e.target;
+  if (el.dataset.dm !== undefined) return dmInput(e);
+  if (!el.dataset.b || el.dataset.b === 'quocHieu') return;
+  const d = curDecl(); if (!d) return;
+  let v = el.type === 'checkbox' ? el.checked : el.value;
+  if (el.dataset.money !== undefined) {
+    const n = K.num(v); const read = el.parentElement.querySelector('.money-read'); if (read) read.textContent = n ? K.docSo(n) : '';
+    v = n ? String(n) : '';
+  }
+  setPath(d, el.dataset.b, v);
+  if (el.dataset.fx !== undefined) { const box = el.closest('.full'); const path = el.dataset.b.replace(/\.giaTri_(fx|rate)$/, ''); const it = getPath(d, path); const g = K.GROUP[path.split('.')[1]]; const o = box && box.querySelector('[data-fxout]'); if (o) o.textContent = 'Quy đổi: ' + K.fmtVND(K.itemValue(g, it)); }
+  if (el.dataset.b === 'nguoi.hoTen') { const h = curHoSo(); if (h && (h.label === 'Hồ sơ mới' || h.autoLabel)) { h.label = v || 'Hồ sơ mới'; h.autoLabel = true; const o = $('#selHS option:checked'); if (o) o.textContent = h.label; } }
+  touch();
+}
+function onChange(e) {
+  const el = e.target;
+  if (el.id === 'selHS') { const h = db.hoso.find(x => x.id === el.value); db.cur.hosoId = h.id; db.cur.declId = h.decls.length ? h.decls[h.decls.length - 1].id : null; ui.page = 'ky'; persist(); render(); return; }
+  if (el.id === 'selKy') { db.cur.declId = el.value; persist(); render(); return; }
+  if (el.dataset.s) { db.settings[el.dataset.s] = el.type === 'checkbox' ? el.checked : (el.type === 'number' ? +el.value : (isNaN(+el.value) ? el.value : +el.value)); persist(); return; }
+  if (el.dataset.dm !== undefined) return dmChange(e);
+  if (el.dataset.b === 'quocHieu') { curDecl().quocHieu = el.value.startsWith('Cơ quan của Đảng') ? 'dang' : 'nha_nuoc'; touch(); return; }
+  if (el.dataset.b && el.dataset.money !== undefined) { el.value = el.value ? K.fmtMoney(K.num(el.value)) : ''; }
+  if (el.dataset.rerender !== undefined) { if (el.type === 'radio') setPath(curDecl(), el.dataset.b, el.value); touch(); const y = window.scrollY; render(); window.scrollTo(0, y); }
+  else if (el.dataset.b && ['thunhap', 'biendong', 'tien', 'ck'].includes(ui.page) && !el.closest('.item-b textarea')) { clearTimeout(window._rrT); window._rrT = setTimeout(() => { if (document.activeElement && document.activeElement.matches('input,textarea,select') && document.activeElement !== el) { const p = document.activeElement.dataset.b; const y = window.scrollY; render(); window.scrollTo(0, y); if (p) { const n = document.querySelector(`[data-b="${p}"]`); if (n) n.focus(); } } else { const y = window.scrollY; render(); window.scrollTo(0, y); } }, 180); }
+  if (el.dataset.b && el.closest('.item')) { /* cập nhật tiêu đề mục */ const it = el.closest('.item'); const d = curDecl(); const m = el.dataset.b.match(/^ts\.(\w+)\.#(\w+)/); if (m) { const g = K.GROUP[m[1]]; const idx = d.ts[m[1]].findIndex(x => x.id === m[2]); const obj = d.ts[m[1]][idx]; $('.item-h .t', it).textContent = itemTitle(g, obj, idx); const vv = $('.item-h .v', it); if (vv) vv.textContent = obj.giaTri_unk ? 'Không xác định' : K.fmtVND(K.itemValue(g, obj)); } }
+}
+async function onClick(e) {
+  const el = e.target.closest('[data-act],[data-mode]'); if (!el) return;
+  if (el.dataset.mode && !el.dataset.act) { ui.mode = el.dataset.mode; renderShell(); return; }
+  const act = el.dataset.act; const d = curDecl();
+  const rr = () => { const y = window.scrollY; render(); window.scrollTo(0, y); };
+  switch (act) {
+    case 'mode': ui.mode = el.dataset.mode; renderShell(); break;
+    case 'goto': { const nav = el.dataset.nav; const pid = NAV_OF[nav] || nav; if (ui.mode !== 'kekhai') { ui.mode = 'kekhai'; } ui.page = pid; render(); window.scrollTo(0, 0); if (nav !== pid) { const g = document.getElementById('g-' + nav); if (g) g.scrollIntoView({ behavior: 'smooth' }); } break; }
+    case 'add': { const it = K.newItem(el.dataset.g); d.ts[el.dataset.g].push(it); ui.openItems[it.id] = true; touch(); rr(); break; }
+    case 'dup': { e.stopPropagation(); const arr = d.ts[el.dataset.g]; const src = arr.find(x => x.id === el.dataset.id); const it = Object.assign(K.clone(src), { id: K.uid() }); arr.splice(arr.indexOf(src) + 1, 0, it); ui.openItems[it.id] = true; touch(); rr(); break; }
+    case 'del': { e.stopPropagation(); if (!await confirmBox('Xoá tài sản', 'Xoá mục này khỏi bản kê khai? Nếu tài sản đã bán/tặng cho trong kỳ, sau khi xoá hãy ghi nguyên nhân giảm ở Mục III.', 'Xoá', true)) return; d.ts[el.dataset.g] = d.ts[el.dataset.g].filter(x => x.id !== el.dataset.id); touch(); rr(); break; }
+    case 'toggle': { if (e.target.closest('button')) return; ui.openItems[el.dataset.id] = !ui.openItems[el.dataset.id]; rr(); break; }
+    case 'addCon': d.con.push(K.emptyChild()); touch(); rr(); break;
+    case 'delCon': if (await confirmBox('Xoá', 'Xoá thông tin người con này?', 'Xoá', true)) { d.con = d.con.filter(x => x.id !== el.dataset.id); touch(); rr(); } break;
+    case 'fillSalary': { const per = K.incomePeriod(d, curPrev()); if (!per || !per.tu || !per.den) { toast('Chưa đủ ngày để xác định kỳ thu nhập'); return; } const who = el.dataset.who; const r = K.calcSalary(who === 'ban' ? d.thuNhap.calc : d.thuNhap.calcVoChong, per.tu, per.den, db.settings.lcs); if (!r.total) { toast('Nhập hệ số lương trước'); return; } d.thuNhap[who].luong = String(r.total); touch(); rr(); toast('Đã điền ' + K.fmtVND(r.total) + ' — hãy đối chiếu với thực nhận'); break; }
+    case 'suggestBD': K.applyBienDongSuggest(d, curPrev()); touch(); rr(); toast('Đã cập nhật gợi ý biến động'); break;
+    case 'addBD': d.bienDong[el.dataset.kind].push({ id: K.uid(), auto: false, moTa: '', giaTri: '', giaiTrinh: '', minhChung: '' }); touch(); rr(); break;
+    case 'delBD': d.bienDong[el.dataset.kind] = d.bienDong[el.dataset.kind].filter(x => x.id !== el.dataset.id); touch(); rr(); break;
+    case 'newHS': return newHoSoFlow(!!el.dataset.ho);
+    case 'newKy': return newKyFlow();
+    case 'hsMenu': return hsMenu();
+    case 'preview': return previewDecl(d);
+    case 'docx': return exportDocx(d);
+    case 'print': return printDecl(d);
+    case 'sendFile': return sendFileFlow();
+    case 'json': { const blob = new Blob([JSON.stringify(K.exportStructured(curHoSo(), d, curPrev()), null, 2)], { type: 'application/json' }); saveBlob(blob, `KeKhai_${safeName(d.nguoi.hoTen)}_${d.nam}.json`); break; }
+    case 'saveAll': return backupAll();
+    case 'openFile': return openFileFlow();
+    case 'settings': return settingsModal();
+    case 'about': return aboutModal();
+    default: if (act.startsWith('dm')) return dmClick(e, el, act);
+  }
+}
+
+// ------------------------------------------------------------------ FLOWS
+async function newHoSoFlow(isHo) {
+  const name = await modal('Tạo hồ sơ mới', `<label class="f">Họ và tên người kê khai<input type="text" id="nm" placeholder="VD: Nguyễn Văn A"></label>
+    <label class="f" style="margin-top:10px">Phương thức kê khai<select id="pt">${Object.entries(K.PHUONG_THUC_TEN).map(([k, v]) => `<option value="${k}" ${k === 'hang_nam' ? 'selected' : ''}>${v}</option>`).join('')}</select></label>
+    <p class="small mut">Nếu năm trước đã kê khai trên giấy, chọn phương thức của năm nay; ứng dụng sẽ hỏi ngày kê khai lần trước để tính kỳ thu nhập.${isHo ? ' <br><b>Kê khai hộ:</b> người kê khai vẫn phải tự kiểm tra, ký từng trang và chịu trách nhiệm về nội dung.' : ''}</p>`,
+    [{ label: 'Huỷ', value: null }, { label: 'Tạo', cls: 'pri', onClick: m => ({ nm: $('#nm', m).value.trim(), pt: $('#pt', m).value }) }], 'sm');
+  if (!name) return;
+  const h = K.newHoSo(name.nm || 'Hồ sơ mới'); h.autoLabel = !name.nm;
+  const dcl = K.newDecl({ phuongThuc: name.pt, nam: new Date().getFullYear() }); dcl.nguoi.hoTen = name.nm;
+  h.decls.push(dcl); db.hoso.push(h); db.cur = { hosoId: h.id, declId: dcl.id }; ui.page = 'ky'; ui.mode = 'kekhai';
+  await persist(); renderShell();
+}
+async function newKyFlow() {
+  const h = curHoSo(); const d = curDecl();
+  const r = await modal('Tạo kỳ kê khai mới', `<p class="small">Kỳ mới được tạo <b>từ dữ liệu kỳ đang mở</b> (${esc(K.PHUONG_THUC_TEN[d.phuongThuc])} ${d.nam}): giữ nguyên thông tin chung và tài sản để bạn chỉ cần cập nhật phần thay đổi; thu nhập và Mục III được làm mới; ứng dụng tự so sánh để gợi ý biến động.</p>
+    <div class="grid"><label class="f">Phương thức<select id="pt">${Object.entries(K.PHUONG_THUC_TEN).filter(([k]) => k !== 'lan_dau').map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
+    <label class="f">Năm<input type="text" id="nam" value="${Number(d.nam) < new Date().getFullYear() ? new Date().getFullYear() : Number(d.nam) + 1}"></label>
+    <label class="f full">Ngày chốt thông tin<input type="date" id="nc"></label></div>`,
+    [{ label: 'Huỷ', value: null }, { label: 'Tạo kỳ mới', cls: 'pri', onClick: m => ({ pt: $('#pt', m).value, nam: $('#nam', m).value, nc: $('#nc', m).value }) }], 'sm');
+  if (!r) return;
+  const nd = K.rollForward(d, { phuongThuc: r.pt, nam: Number(r.nam) || (r.nc ? Number(r.nc.slice(0, 4)) : new Date().getFullYear()), ngayChot: r.nc });
+  h.decls.push(nd); db.cur.declId = nd.id; ui.page = 'ky'; await persist(); render(); toast('Đã tạo kỳ mới từ dữ liệu kỳ trước');
+}
+async function hsMenu() {
+  const h = curHoSo(); const d = curDecl();
+  const r = await modal('Quản lý hồ sơ: ' + esc(h.label), `<div class="grid">
+    <label class="f full">Tên hồ sơ<input type="text" id="lb" value="${esc(h.label)}"></label></div>
+    <div class="row" style="margin-top:12px"><button class="btn" data-pick="dupKy">Nhân bản kỳ đang mở</button><button class="btn dang" data-pick="delKy">Xoá kỳ đang mở</button><button class="btn dang" data-pick="delHS">Xoá cả hồ sơ</button></div>`,
+    [{ label: 'Đóng', value: null }, { label: 'Lưu tên', cls: 'pri', onClick: m => ({ lb: $('#lb', m).value }) }], 'sm');
+  if (r && r.lb) { h.label = r.lb; h.autoLabel = false; persist(); render(); }
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-pick]'); if (!b) return;
+  const m = b.closest('.modal'); const h = curHoSo(); const d = curDecl();
+  if (b.dataset.pick === 'dupKy') { const nd = K.clone(d); nd.id = K.uid(); nd.nam = d.nam; h.decls.push(nd); db.cur.declId = nd.id; m._close(null); persist(); render(); toast('Đã nhân bản kỳ kê khai'); }
+  if (b.dataset.pick === 'delKy') { m._close(null); if (await confirmBox('Xoá kỳ kê khai', 'Xoá vĩnh viễn kỳ kê khai đang mở khỏi máy này?', 'Xoá', true)) { h.decls = h.decls.filter(x => x.id !== d.id); db.cur.declId = h.decls.length ? h.decls[h.decls.length - 1].id : null; if (!h.decls.length) { db.hoso = db.hoso.filter(x => x.id !== h.id); db.cur = { hosoId: db.hoso[0]?.id || null, declId: db.hoso[0]?.decls.slice(-1)[0]?.id || null }; } persist(); render(); } }
+  if (b.dataset.pick === 'delHS') { m._close(null); if (await confirmBox('Xoá hồ sơ', `Xoá vĩnh viễn toàn bộ hồ sơ "${esc(h.label)}" (mọi kỳ kê khai) khỏi máy này? Nên sao lưu ra file trước.`, 'Xoá', true)) { db.hoso = db.hoso.filter(x => x.id !== h.id); db.cur = { hosoId: db.hoso[0]?.id || null, declId: db.hoso[0]?.decls.slice(-1)[0]?.id || null }; persist(); render(); } }
+});
+
+function exportOpts(d) { return { fontSize: +db.settings.fontSize || 13, footer: `Người kê khai ký: .................................`, title: 'Bản kê khai tài sản, thu nhập — ' + (d.nguoi.hoTen || ''), creator: d.nguoi.hoTen }; }
+function declBlocks(d) { return K.buildDeclDoc(d, prevOf(curHoSo(), d), { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong }); }
+async function exportDocx(d, blocks, name) {
+  const R = K.review(d, curPrev(), { lcs: db.settings.lcs }); const nErr = R.filter(x => x.level === 'loi').length;
+  if (nErr && !blocks) { const ok = await confirmBox('Còn lỗi chưa sửa', `Bản kê khai còn <b>${nErr} lỗi</b>. Vẫn xuất file Word để xem/chỉnh tiếp?`, 'Vẫn xuất'); if (!ok) return; }
+  const bytes = K.buildDocx(blocks || declBlocks(d), exportOpts(d));
+  await saveBlob(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), name || `BanKeKhai_${safeName(d.nguoi.hoTen)}_${d.nam}.docx`);
+}
+function previewDecl(d, blocks) {
+  modal('Xem trước bản kê khai', `<div class="paper">${K.blocksToHtml(blocks || declBlocks(d), +db.settings.fontSize || 13)}</div>`, [{ label: 'Đóng' }, { label: '🖨 In', onClick: () => { printDecl(d, blocks); return false; } }, { label: '⬇ Xuất Word', cls: 'pri', onClick: () => { exportDocx(d, blocks); return false; } }]);
+}
+function printDecl(d, blocks) { $('#printArea').innerHTML = `<div class="paper">${K.blocksToHtml(blocks || declBlocks(d), +db.settings.fontSize || 13)}</div>`; setTimeout(() => window.print(), 50); }
+async function sendFileFlow() {
+  const h = curHoSo(); const d = curDecl();
+  const pw = await askPassword('Lưu file gửi đầu mối', 'File .tstn chứa toàn bộ hồ sơ của bạn (kể cả các kỳ trước để đầu mối đối chiếu biến động). Đặt mật khẩu để mã hoá; chỉ báo mật khẩu cho người tiếp nhận <b>qua kênh riêng</b> (gọi điện, gặp trực tiếp). Để trống nếu không mã hoá (không khuyến nghị).', true);
+  if (pw === null) return;
+  const text = await K.encryptJSON({ type: 'hoso', sentDeclId: d.id, sentAt: new Date().toISOString(), hoso: h }, pw);
+  await saveBlob(new Blob([text], { type: 'application/json' }), `KeKhai_${safeName(d.nguoi.hoTen)}_${d.nam}.tstn`);
+}
+async function backupAll() {
+  if (!db.hoso.length && !db.dauMoi.items.length) { toast('Chưa có dữ liệu để sao lưu'); return; }
+  const pw = await askPassword('Sao lưu toàn bộ dữ liệu', 'Lưu tất cả hồ sơ và dữ liệu đầu mối trên máy này ra một file .tstn. Nên đặt mật khẩu (tối thiểu 6 ký tự) và cất file ở nơi an toàn (USB, Drive cá nhân). Ghi nhớ mật khẩu — mất mật khẩu sẽ không mở được file.', true);
+  if (pw === null) return;
+  const text = await K.encryptJSON({ type: 'backup', at: new Date().toISOString(), db }, pw);
+  const ok = await saveBlob(new Blob([text], { type: 'application/json' }), `SaoLuu_KeKhaiTSTN_${K.todayISO()}.tstn`, 'backup');
+  if (ok) { db.settings.lastBackup = new Date().toISOString(); persist(); toast('Đã sao lưu'); }
+}
+async function openFileFlow() {
+  const [f] = await pickFiles('.tstn,.json'); if (!f) return;
+  const r = await openTstnText(await readText(f), f.name); if (!r) return;
+  const data = r.data;
+  if (data.type === 'backup') {
+    const ok = await confirmBox('Khôi phục bản sao lưu', `File sao lưu ngày ${new Date(data.at).toLocaleString('vi-VN')} có ${data.db.hoso.length} hồ sơ. <b>Gộp</b> vào dữ liệu hiện có (hồ sơ trùng sẽ được thay bằng bản trong file)?`, 'Gộp dữ liệu');
+    if (!ok) return;
+    data.db.hoso.forEach(h => { db.hoso = db.hoso.filter(x => x.id !== h.id); db.hoso.push(h); });
+    if (data.db.dauMoi && data.db.dauMoi.items) data.db.dauMoi.items.forEach(it => { db.dauMoi.items = db.dauMoi.items.filter(x => x.id !== it.id); db.dauMoi.items.push(it); });
+    fixDB(); if (!curDecl() && db.hoso.length) db.cur = { hosoId: db.hoso[0].id, declId: db.hoso[0].decls.slice(-1)[0].id };
+    await persist(); renderShell(); toast('Đã khôi phục'); return;
+  }
+  const hoso = data.type === 'hoso' ? data.hoso : (data.decls ? data : null);
+  if (!hoso) { toast('File không chứa hồ sơ kê khai'); return; }
+  if (ui.mode === 'daumoi') { dmAddFromData(data, f.name); return; }
+  const exist = db.hoso.find(x => x.id === hoso.id);
+  if (exist && !await confirmBox('Hồ sơ đã có trên máy', `Hồ sơ "${esc(hoso.label)}" đã có. Thay bằng dữ liệu trong file (có thể kèm góp ý của đầu mối)?`, 'Thay thế')) return;
+  db.hoso = db.hoso.filter(x => x.id !== hoso.id); db.hoso.push(hoso); fixDB();
+  const h = db.hoso.find(x => x.id === hoso.id);
+  db.cur = { hosoId: h.id, declId: data.sentDeclId && h.decls.some(x => x.id === data.sentDeclId) ? data.sentDeclId : h.decls.slice(-1)[0].id };
+  ui.mode = 'kekhai'; const hasCmt = (curDecl().review.comments || []).length; ui.page = hasCmt ? 'xuat' : 'ky';
+  await persist(); renderShell(); toast(hasCmt ? 'Đã mở hồ sơ — có góp ý từ đầu mối' : 'Đã mở hồ sơ');
+}
+function checkBackupReminder() {
+  if (!db.hoso.length) return;
+  const last = db.settings.lastBackup ? new Date(db.settings.lastBackup) : null;
+  if (!last || (Date.now() - last) > 14 * 86400000) setTimeout(() => { setSaved((last ? 'Lần sao lưu cuối: ' + last.toLocaleDateString('vi-VN') : 'Chưa sao lưu ra file') + ' — nên bấm 💾 Sao lưu'); }, 1500);
+}
+
+// ------------------------------------------------------------------ SETTINGS / ABOUT
+async function settingsModal() {
+  const s = db.settings;
+  const r = await modal('Cài đặt', `
+    <h3>Bảng lương cơ sở theo giai đoạn</h3><p class="small mut">Dùng cho trợ lý tính thu nhập. Khi Nhà nước điều chỉnh, thêm dòng mới (hoặc cập nhật ứng dụng).</p>
+    <table class="t" id="lcsT"><tr><th>Từ ngày</th><th>Đến ngày</th><th class="n">Mức (đồng/tháng)</th><th>Căn cứ</th></tr>
+    ${s.lcs.map((x, i) => `<tr><td><input type="date" data-l="${i}.tu" value="${x.tu}"></td><td><input type="date" data-l="${i}.den" value="${x.den}"></td><td><input type="text" data-l="${i}.muc" value="${x.muc}"></td><td><input type="text" data-l="${i}.cancu" value="${esc(x.cancu)}"></td></tr>`).join('')}</table>
+    <button class="btn sm" id="addLcs" style="margin-top:6px">+ Thêm giai đoạn</button>
+    <h3 style="margin-top:18px">Hạn nộp</h3><label class="f">Hạn nộp theo yêu cầu cơ quan quản lý (để cảnh báo)<input type="date" id="hanNop" value="${s.hanNop || ''}"></label>
+    <h3 style="margin-top:18px">Bảo mật dữ liệu trên máy này</h3>
+    <label class="chk"><input type="checkbox" id="lock" ${s.lock ? 'checked' : ''}> Mã hoá dữ liệu trong trình duyệt bằng mật khẩu (hỏi mật khẩu mỗi lần mở ứng dụng)</label>
+    <p class="small mut">Nên bật nếu máy tính dùng chung. Nếu quên mật khẩu sẽ không mở được dữ liệu — hãy sao lưu ra file.</p>
+    <h3 style="margin-top:18px">Dữ liệu</h3><div class="row"><button class="btn dang" id="wipe">Xoá toàn bộ dữ liệu trên máy này</button></div>`,
+    [{ label: 'Huỷ', value: null }, { label: 'Lưu cài đặt', cls: 'pri', onClick: m => {
+      const lcs = K.clone(s.lcs); $$('[data-l]', m).forEach(i => { const [idx, k] = i.dataset.l.split('.'); if (!lcs[idx]) lcs[idx] = {}; lcs[idx][k] = k === 'muc' ? K.num(i.value) : i.value; });
+      return { lcs: lcs.filter(x => x.tu && x.den && x.muc).sort((a, b) => a.tu.localeCompare(b.tu)), hanNop: $('#hanNop', m).value, lock: $('#lock', m).checked };
+    } }]);
+  if (!r) return;
+  s.lcs = r.lcs; s.hanNop = r.hanNop;
+  if (r.lock && !s.lock) { const pw = await askPassword('Đặt mật khẩu bảo vệ dữ liệu', 'Mật khẩu dùng để mã hoá dữ liệu lưu trong trình duyệt của máy này.', true); if (pw) { sessionPw = pw; s.lock = true; } }
+  else if (!r.lock && s.lock) { s.lock = false; sessionPw = null; }
+  await persist(); render(); toast('Đã lưu cài đặt');
+}
+document.addEventListener('click', async e => {
+  if (e.target.id === 'addLcs') { const t = $('#lcsT'); const i = t.rows.length - 1; const tr = t.insertRow(); tr.innerHTML = `<td><input type="date" data-l="${i}.tu"></td><td><input type="date" data-l="${i}.den" value="2099-12-31"></td><td><input type="text" data-l="${i}.muc"></td><td><input type="text" data-l="${i}.cancu"></td>`; }
+  if (e.target.id === 'wipe') { if (await confirmBox('Xoá toàn bộ dữ liệu', 'Xoá vĩnh viễn mọi hồ sơ và dữ liệu đầu mối khỏi trình duyệt của máy này? Không thể hoàn tác.', 'Xoá hết', true)) { localStorage.removeItem(DB_KEY); localStorage.removeItem(DB_ENC_KEY); db = defaultDB(); sessionPw = null; $$('.modal').forEach(m => m.remove()); renderShell(); toast('Đã xoá'); } }
+});
+function aboutModal() {
+  modal('Giới thiệu', `<h2 style="margin-bottom:4px">${esc(K.APP.name)} <span class="mut small">phiên bản ${K.APP.version} (${K.APP.build})</span></h2>
+  <p>Phần mềm hỗ trợ lập, tự rà soát và quản lý bản kê khai tài sản, thu nhập của người có chức vụ, quyền hạn.</p>
+  <p><b>Bản quyền:</b> ${esc(K.APP.copyright)}.<br>Miễn phí sử dụng năm 2026 cho mọi cá nhân, cơ quan, đơn vị. Không được thương mại hoá, sửa đổi để phát hành lại dưới tên khác khi chưa có sự đồng ý bằng văn bản của tác giả.</p>
+  <p><b>Căn cứ pháp lý:</b> Luật Phòng, chống tham nhũng số 36/2018/QH14 được sửa đổi, bổ sung bởi Luật số 59/2020/QH14, 81/2025/QH15, 132/2025/QH15; Nghị định số 164/2026/NĐ-CP ngày 15/5/2026 của Chính phủ về kiểm soát tài sản, thu nhập (mẫu bản kê khai tại Phụ lục); Nghị định số 161/2026/NĐ-CP (lương cơ sở).</p>
+  <p><b>Quyền riêng tư:</b> Dữ liệu chỉ lưu trong trình duyệt trên máy của bạn và trong các file bạn tự lưu. Ứng dụng không có máy chủ, không thu thập, không gửi dữ liệu đi đâu. Khi có mạng, ứng dụng chỉ kiểm tra số phiên bản mới (không gửi kèm dữ liệu).</p>
+  <p><b>Lưu ý:</b> Kết quả "tự rà soát" là công cụ hỗ trợ, không thay thế việc hướng dẫn, kiểm tra, xác minh của cơ quan, đơn vị có thẩm quyền. Người kê khai chịu trách nhiệm về tính trung thực, đầy đủ của bản kê khai.</p>
+  <p class="small mut">Liên hệ góp ý, báo lỗi: ${esc(K.APP.phone)} · <a href="mailto:${esc(K.APP.email)}">${esc(K.APP.email)}</a></p>`, [{ label: 'Đóng', cls: 'pri' }]);
+}
+
+// ------------------------------------------------------------------ ĐẦU MỐI
+function dmItem(id) { return db.dauMoi.items.find(x => x.id === id); }
+function dmDecl(it) { if (!it.hoso) return null; return it.hoso.decls.find(x => x.id === it.declId) || it.hoso.decls.slice(-1)[0]; }
+function dmPrev(it) { const d = dmDecl(it); return d ? prevOf(it.hoso, d) : null; }
+function dmRefresh(it) {
+  const d = dmDecl(it); if (!d) return;
+  Object.assign(it, { hoTen: d.nguoi.hoTen, chucVu: d.nguoi.chucVu, phuongThuc: K.PHUONG_THUC_TEN[d.phuongThuc], ngayChot: K.fmtDate(d.ngayChot) });
+  it.findings = K.review(d, dmPrev(it), { lcs: db.settings.lcs });
+}
+async function dmAddFromData(data, fileName) {
+  const hoso = data.type === 'hoso' ? data.hoso : data;
+  hoso.decls = hoso.decls.map(K.normalizeDecl);
+  const declId = data.sentDeclId || hoso.decls.slice(-1)[0].id;
+  let it = db.dauMoi.items.find(x => x.hoso && x.hoso.id === hoso.id && x.declId === declId);
+  if (it) { if (!await confirmBox('Đã có hồ sơ này', `Đã tiếp nhận hồ sơ của ${esc(hoso.label)} trước đó. Cập nhật bằng file mới?`, 'Cập nhật')) return; it.hoso = hoso; }
+  else { it = { id: K.uid(), source: 'file', fileName, hoso, declId, ngayNhan: K.todayISO(), soBo: db.dauMoi.meta.soBo, status: 'Đã nhận', gopY: '', ghiChu: '' }; db.dauMoi.items.push(it); }
+  dmRefresh(it); await persist(); renderDauMoi(); toast('Đã tiếp nhận: ' + (it.hoTen || fileName)); return it;
+}
+function renderDauMoiSide() {
+  const items = db.dauMoi.items; const st = {}; items.forEach(x => st[x.status] = (st[x.status] || 0) + 1);
+  $('#side').innerHTML = `<div class="hs-box"><b>Chế độ Đầu mối đơn vị</b><p class="small mut" style="margin:6px 0 0">Tiếp nhận, rà soát, tổng hợp bản kê khai của cán bộ thuộc đơn vị (CV yêu cầu giao 01 người đầu mối; NĐ 164 chú thích 42: người nhận phải kiểm tra tính đầy đủ).</p></div>
+   <h4>Tình hình</h4><nav class="nav">${['Đã nhận', 'Cần bổ sung', 'Đạt', 'Đã nộp cấp trên'].map(s => `<a><span>${s}</span><span class="badge ${s === 'Cần bổ sung' ? 'b-err' : s === 'Đạt' || s === 'Đã nộp cấp trên' ? 'b-ok' : 'b-warn'}">${st[s] || 0}</span></a>`).join('')}<a><span><b>Tổng số hồ sơ</b></span><b>${items.length}</b></a></nav>
+   <h4>Quay lại</h4><nav class="nav"><a data-act="mode" data-mode="kekhai"><span>← Chế độ người kê khai</span></a></nav>`;
+}
+function renderDauMoi() {
+  const m = db.dauMoi.meta; const items = db.dauMoi.items;
+  items.forEach(it => { if (it.hoso && !it.findings) dmRefresh(it); });
+  $('#main').innerHTML = `<h1>Đầu mối đơn vị — tiếp nhận & rà soát</h1><p class="sub">Dữ liệu người kê khai lưu trên máy của đầu mối; xoá sau khi hoàn thành bàn giao nếu không cần lưu.</p>
+  <div class="card"><h3 style="margin-bottom:10px">Thông tin đơn vị</h3><div class="grid g3">
+    <label class="f">Tên đơn vị<input type="text" data-dm="meta.donVi" value="${esc(m.donVi)}"></label>
+    <label class="f">Năm kê khai<input type="text" data-dm="meta.nam" value="${esc(m.nam)}"></label>
+    <label class="f">Số bộ mỗi người phải nộp<input type="number" data-dm="meta.soBo" value="${esc(m.soBo)}"></label>
+    <label class="f">Người ký văn bản tổng hợp<input type="text" data-dm="meta.nguoiKy" value="${esc(m.nguoiKy)}"></label>
+    <label class="f">Chức danh người ký<input type="text" data-dm="meta.chucDanhKy" value="${esc(m.chucDanhKy)}"></label>
+    <label class="f">Địa danh<input type="text" data-dm="meta.diaDanh" value="${esc(m.diaDanh)}"></label></div></div>
+  <div class="card"><div class="card-h"><h3>Hồ sơ đã tiếp nhận (${items.length})</h3><div class="row">
+    <button class="btn pri sm" data-act="dmImport">📥 Nhập file .tstn/.json</button><button class="btn sm" data-act="dmPaper">✍ Ghi nhận bản giấy/Word</button>
+    <button class="btn sm" data-act="dmList">⬇ Danh sách (phụ lục)</button><button class="btn sm" data-act="dmTrack">⬇ Sổ theo dõi</button></div></div>
+  ${items.length ? `<table class="t"><tr><th>#</th><th>Họ và tên / Chức vụ</th><th>Phương thức</th><th>Nguồn</th><th>Ngày nhận</th><th>Rà soát</th><th>Trạng thái</th><th></th></tr>
+  ${items.map((it, i) => { const f = it.findings || []; const e = f.filter(x => x.level === 'loi').length, w = f.filter(x => x.level === 'canh_bao').length; return `<tr>
+    <td>${i + 1}</td><td><b>${esc(it.hoTen || '')}</b><div class="small mut">${esc(it.chucVu || '')}</div></td><td class="small">${esc(it.phuongThuc || '')}</td>
+    <td class="small">${it.source === 'file' ? '📄 File' : '📝 Bản giấy'}</td><td><input type="date" data-dm="items.#${it.id}.ngayNhan" value="${esc(it.ngayNhan)}" style="width:140px"></td>
+    <td>${it.source === 'file' ? `<span class="badge ${e ? 'b-err' : 'b-ok'}">${e} lỗi</span> <span class="badge b-warn">${w}</span>` : '<span class="small mut">thủ công</span>'}</td>
+    <td><select data-dm="items.#${it.id}.status">${['Đã nhận', 'Cần bổ sung', 'Đạt', 'Đã nộp cấp trên'].map(s => `<option ${s === it.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+    <td style="white-space:nowrap"><button class="btn sm" data-act="dmOpen" data-id="${it.id}">Rà soát / Góp ý</button> <button class="btn sm ghost dang" data-act="dmDel" data-id="${it.id}">✕</button></td></tr>`; }).join('')}</table>` : '<div class="empty">Chưa tiếp nhận hồ sơ nào. Cán bộ dùng nút "Lưu file gửi đầu mối" ở trang Rà soát & Xuất để tạo file .tstn gửi cho bạn.</div>'}</div>
+  <div class="foot">${esc(K.APP.copyright)}</div>`;
+}
+function dmInput(e) { const el = e.target; setPath(db.dauMoi, el.dataset.dm, el.type === 'checkbox' ? el.checked : el.value); dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(persist, 500); }
+function dmChange(e) { dmInput(e); if (/status$/.test(e.target.dataset.dm)) renderDauMoiSide(); }
+async function dmClick(e, el, act) {
+  const m = db.dauMoi.meta;
+  if (act === 'dmImport') {
+    const files = await pickFiles('.tstn,.json', true);
+    for (const f of files) { const r = await openTstnText(await readText(f), f.name); if (!r) continue; if (r.data.type === 'backup') { toast(f.name + ': là file sao lưu, mở bằng nút 📂 Mở file'); continue; } const it = await dmAddFromData(r.data, f.name); if (it) dmPw[it.id] = r.pw; }
+    renderDauMoiSide();
+  }
+  if (act === 'dmPaper') {
+    const r = await modal('Ghi nhận bản kê khai giấy/Word', `<div class="grid"><label class="f">Họ và tên<input type="text" id="a"></label><label class="f">Chức vụ<input type="text" id="b"></label>
+      <label class="f">Phương thức<select id="c">${Object.values(K.PHUONG_THUC_TEN).map(v => `<option ${v === 'Kê khai hằng năm' ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label class="f">Số bộ nhận<input type="number" id="d" value="${m.soBo}"></label>
+      <label class="f full">Ghi chú/góp ý khi kiểm tra<textarea id="e"></textarea></label></div>`,
+      [{ label: 'Huỷ', value: null }, { label: 'Ghi nhận', cls: 'pri', onClick: mm => ({ hoTen: $('#a', mm).value, chucVu: $('#b', mm).value, phuongThuc: $('#c', mm).value, soBo: $('#d', mm).value, gopY: $('#e', mm).value }) }], 'sm');
+    if (!r || !r.hoTen) return;
+    db.dauMoi.items.push(Object.assign({ id: K.uid(), source: 'giay', ngayNhan: K.todayISO(), status: 'Đã nhận', findings: [] }, r)); persist(); renderDauMoiSide(); renderDauMoi();
+  }
+  if (act === 'dmDel') { if (await confirmBox('Xoá', 'Xoá hồ sơ này khỏi danh sách tiếp nhận trên máy đầu mối?', 'Xoá', true)) { db.dauMoi.items = db.dauMoi.items.filter(x => x.id !== el.dataset.id); persist(); renderDauMoiSide(); renderDauMoi(); } }
+  if (act === 'dmList' || act === 'dmTrack') {
+    const rows = db.dauMoi.items.map(it => ({ hoTen: it.hoTen, chucVu: it.chucVu, ghiChu: it.ghiChu || '', phuongThuc: it.phuongThuc, ngayNhan: K.fmtDate(it.ngayNhan), soBo: it.soBo, ketQua: it.status }));
+    const meta = { nam: m.nam, donVi: m.donVi, nguoiKy: m.nguoiKy, chucDanhKy: m.chucDanhKy, diaDanh: m.diaDanh };
+    const blocks = act === 'dmList' ? K.buildListDoc(rows, meta) : K.buildTrackDoc(rows, meta);
+    const bytes = K.buildDocx(blocks, { fontSize: 13, landscape: act === 'dmTrack', footer: '', title: act === 'dmList' ? 'Danh sách người có nghĩa vụ kê khai' : 'Sổ theo dõi giao nhận bản kê khai' });
+    saveBlob(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), (act === 'dmList' ? 'DanhSach_KeKhai_' : 'SoTheoDoi_KeKhai_') + m.nam + '.docx');
+  }
+  if (act === 'dmOpen') return dmOpen(dmItem(el.dataset.id));
+}
+async function dmOpen(it) {
+  if (it.source !== 'file') {
+    const r = await modal('Bản giấy: ' + esc(it.hoTen), `<label class="f">Góp ý/ghi chú khi kiểm tra<textarea id="g" rows="6">${esc(it.gopY || '')}</textarea></label><label class="f" style="margin-top:8px">Ghi chú in trong danh sách<input type="text" id="n" value="${esc(it.ghiChu || '')}"></label>`, [{ label: 'Đóng', value: null }, { label: 'Lưu', cls: 'pri', onClick: m => ({ g: $('#g', m).value, n: $('#n', m).value }) }], 'sm');
+    if (r) { it.gopY = r.g; it.ghiChu = r.n; persist(); } return;
+  }
+  dmRefresh(it); const d = dmDecl(it); const blocks = K.buildDeclDoc(d, dmPrev(it), { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong });
+  const f = it.findings; const e = f.filter(x => x.level === 'loi').length;
+  const r = await modal('Rà soát: ' + esc(it.hoTen), `
+    <div class="kpis"><div class="kpi"><span>Lỗi</span><b class="${e ? 'stat-err' : 'stat-ok'}">${e}</b></div><div class="kpi"><span>Cảnh báo</span><b>${f.filter(x => x.level === 'canh_bao').length}</b></div><div class="kpi"><span>Phương thức</span><b style="font-size:14px">${esc(it.phuongThuc)}</b></div><div class="kpi"><span>Ngày chốt</span><b style="font-size:14px">${esc(it.ngayChot)}</b></div></div>
+    <div class="card" style="padding:0;max-height:260px;overflow:auto">${findingsHtml(f).replace(/data-act="goto"/g, '')}</div>
+    <label class="f">Góp ý của người rà soát (sẽ gửi kèm khi lưu file trả lại)<textarea id="gy" rows="5">${esc(it.gopY || '')}</textarea></label>
+    <label class="f" style="margin-top:8px">Ghi chú in trong danh sách<input type="text" id="gc" value="${esc(it.ghiChu || '')}"></label>
+    <details style="margin-top:10px"><summary style="cursor:pointer">Xem nội dung bản kê khai</summary><div class="paper" style="margin-top:8px">${K.blocksToHtml(blocks, 12)}</div></details>`,
+    [{ label: 'Đóng', value: null },
+     { label: '⬇ Phiếu góp ý (Word)', onClick: m => { it.gopY = $('#gy', m).value; const b = K.buildCommentDoc(it, { nguoiKy: db.dauMoi.meta.nguoiKy, chucDanhKy: 'Người rà soát', diaDanh: db.dauMoi.meta.diaDanh }); saveBlob(new Blob([K.buildDocx(b, { fontSize: 13 })], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), `PhieuGopY_${safeName(it.hoTen)}.docx`); return false; } },
+     { label: '⬇ Bản kê khai (Word)', onClick: () => { saveBlob(new Blob([K.buildDocx(blocks, exportOpts(d))], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), `BanKeKhai_${safeName(it.hoTen)}_${d.nam}.docx`); return false; } },
+     { label: '🔒 Lưu file trả lại kèm góp ý', onClick: m => { it.gopY = $('#gy', m).value; it.ghiChu = $('#gc', m).value; dmReturn(it); return false; } },
+     { label: 'Lưu', cls: 'pri', onClick: m => ({ gy: $('#gy', m).value, gc: $('#gc', m).value }) }]);
+  if (r) { it.gopY = r.gy; it.ghiChu = r.gc; persist(); renderDauMoi(); }
+}
+async function dmReturn(it) {
+  if (!it.gopY.trim()) { toast('Chưa có nội dung góp ý'); return; }
+  const d = dmDecl(it);
+  d.review.comments = d.review.comments || []; d.review.comments.push({ at: new Date().toISOString(), by: (db.dauMoi.meta.nguoiKy || 'Đầu mối') + (db.dauMoi.meta.donVi ? ' — ' + db.dauMoi.meta.donVi : ''), text: it.gopY });
+  let pw = dmPw[it.id];
+  if (pw === undefined) pw = await askPassword('Mật khẩu file trả lại', 'Nhập mật khẩu để mã hoá file trả lại (nên dùng đúng mật khẩu người kê khai đã đặt).', false);
+  if (pw === null) return;
+  const text = await K.encryptJSON({ type: 'hoso', sentDeclId: d.id, sentAt: new Date().toISOString(), hoso: it.hoso }, pw);
+  await saveBlob(new Blob([text], { type: 'application/json' }), `KeKhai_${safeName(it.hoTen)}_${d.nam}_gopy.tstn`);
+  it.status = 'Cần bổ sung'; persist(); renderDauMoiSide();
+}
+
+// ------------------------------------------------------------------ UPDATE CHECK
+async function checkUpdate() {
+  if (!navigator.onLine || !K.APP.updateUrl || location.protocol === 'http:' && /localhost|127\./.test(location.host)) return;
+  try {
+    const ctl = new AbortController(); setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch(K.APP.updateUrl + '?t=' + Date.now(), { signal: ctl.signal, cache: 'no-store' }); if (!r.ok) return;
+    const v = await r.json(); const newer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) > (y[i] || 0)) return true; if ((x[i] || 0) < (y[i] || 0)) return false; } return false; };
+    if (v.version && newer(v.version, K.APP.version)) {
+      const isPWA = location.protocol.startsWith('http');
+      $('#updBanner').innerHTML = `<div class="banner">🔔 Có phiên bản mới <b>${esc(v.version)}</b>${v.notes ? ': ' + esc(v.notes) : ''}. ${isPWA ? '<button class="btn sm pri" onclick="location.reload()">Tải lại để cập nhật</button>' : `<a class="btn sm pri" href="${esc(v.download || K.APP.homeUrl)}" target="_blank" rel="noopener">Tải bản mới</a> <span class="small mut">Dữ liệu của bạn được giữ nguyên.</span>`}</div>`;
+    }
+  } catch { /* offline */ }
+}
+
+// ------------------------------------------------------------------ BOOT
+async function boot() {
+  const st = loadDB();
+  if (st === 'locked') {
+    document.body.innerHTML = `<div class="welcome"><div class="card"><h2>🔒 ${esc(K.APP.name)}</h2><p>Dữ liệu trên máy này đã được mã hoá. Nhập mật khẩu để mở.</p><input type="password" id="unl" placeholder="Mật khẩu"><div class="row" style="margin-top:10px"><button class="btn pri" id="unlBtn">Mở khoá</button></div><p class="small mut" style="margin-top:12px">${esc(K.APP.copyright)}</p></div></div>`;
+    const go = async () => { try { db = await K.decryptJSON(localStorage.getItem(DB_ENC_KEY), $('#unl').value); sessionPw = $('#unl').value; fixDB(); start(); } catch { toast('Sai mật khẩu'); } };
+    $('#unlBtn').onclick = go; $('#unl').onkeydown = e => { if (e.key === 'Enter') go(); }; $('#unl').focus();
+    return;
+  }
+  start();
+}
+function start() {
+  if (!db.cur.hosoId && db.hoso.length) db.cur = { hosoId: db.hoso[0].id, declId: db.hoso[0].decls.slice(-1)[0]?.id };
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  if (!K.cryptoOK()) setTimeout(() => toast('Trình duyệt không hỗ trợ mã hoá — nên dùng Chrome/Edge bản mới'), 1000);
+  renderShell(); setSaved(db.hoso.length ? 'Dữ liệu đã lưu trên máy' : ''); checkBackupReminder();
+  setTimeout(checkUpdate, 2500);
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+window.KKUI = { get db() { return db; }, render, persist };
+document.addEventListener('DOMContentLoaded', boot);
+})();
+
+</script>
+</body>
+</html>
