@@ -269,7 +269,7 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
 
 const APP = {
   name: 'Kê khai TSTN',
-  version: '1.1.1',
+  version: '1.1.2',
   build: '2026-11-22',
   author: 'Lê Quang Trọng',
   place: 'đảo Phú Quý',
@@ -2376,7 +2376,7 @@ async function checkUpdate() {
     const v = await r.json(); const newer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) > (y[i] || 0)) return true; if ((x[i] || 0) < (y[i] || 0)) return false; } return false; };
     if (v.version && newer(v.version, K.APP.version)) {
       const isPWA = location.protocol.startsWith('http');
-      $('#updBanner').innerHTML = `<div class="banner">🔔 Có phiên bản mới <b>${esc(v.version)}</b>${v.notes ? ': ' + esc(v.notes) : ''}. ${isPWA ? '<button class="btn sm pri" onclick="location.reload()">Tải lại để cập nhật</button>' : `<a class="btn sm pri" href="${esc(v.download || K.APP.homeUrl)}" target="_blank" rel="noopener">Tải bản mới</a> <span class="small mut">Dữ liệu của bạn được giữ nguyên.</span>`}</div>`;
+      $('#updBanner').innerHTML = `<div class="banner">🔔 Có phiên bản mới <b>${esc(v.version)}</b>${v.notes ? ': ' + esc(v.notes) : ''}. ${isPWA ? '<button class="btn sm pri" onclick="caches.keys().then(k=>Promise.all(k.map(x=>caches.delete(x)))).finally(()=>location.reload())">Tải lại để cập nhật</button>' : `<a class="btn sm pri" href="${esc(v.download || K.APP.homeUrl)}" target="_blank" rel="noopener">Tải bản mới</a> <span class="small mut">Dữ liệu của bạn được giữ nguyên.</span>`}</div>`;
     }
   } catch { /* offline */ }
 }
