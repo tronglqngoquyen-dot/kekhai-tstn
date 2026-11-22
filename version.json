@@ -1,6 +1,6 @@
 {
-  "version": "1.1.2",
+  "version": "1.2.0",
   "build": "2026-11-22",
-  "notes": "Nhận diện bản kê khai cũ chính xác hơn; luôn tải bản mới nhất",
+  "notes": "File Word xuất ra theo chuẩn văn bản hành chính (14pt, giãn dòng 1,15, cách đoạn 6pt)",
   "download": "https://tronglqngoquyen-dot.github.io/kekhai-tstn/KeKhaiTSTN.html"
 }

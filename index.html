@@ -269,7 +269,7 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
 
 const APP = {
   name: 'Kê khai TSTN',
-  version: '1.1.2',
+  version: '1.2.0',
   build: '2026-11-22',
   author: 'Lê Quang Trọng',
   place: 'đảo Phú Quý',
@@ -777,10 +777,25 @@ function review(decl, prev, opts = {}) {
 //        {t:'table', rows:[[cell...]], widths:[%], border}
 //        {t:'pagebreak'}
 // =====================================================================
-const P = (text, o = {}) => ({ t: 'p', runs: Array.isArray(text) ? text : [{ x: text, b: o.b, i: o.i }], align: o.align || 'both', indent: o.indent ?? 0, firstLine: o.firstLine ?? 0, before: o.before ?? 2, after: o.after ?? 2, size: o.size });
+const P = (text, o = {}) => ({ t: 'p', runs: Array.isArray(text) ? text : [{ x: text, b: o.b, i: o.i }], align: o.align || 'both', indent: o.indent ?? 0, firstLine: o.firstLine ?? 0, before: o.before ?? 2, after: o.after ?? 2, line: o.line, size: o.size });
 const R = (x, o = {}) => Object.assign({ x }, o);
 const dots = v => blank(v) ? '' : String(v);
 const KHONG = 'Không có';
+// Đo bề rộng dòng chữ (pt) bằng font Times New Roman thật khi chạy trong trình duyệt; có thể thay bằng setMeasure()
+let _measure = null;
+function textWidthPt(text, sizePt, bold, italic) {
+  if (_measure) return _measure(text, sizePt, bold, italic);
+  try {
+    if (typeof document !== 'undefined') {
+      const c = textWidthPt._c || (textWidthPt._c = document.createElement('canvas').getContext('2d'));
+      c.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}100px "Times New Roman", "Liberation Serif", Tinos, serif`;
+      return c.measureText(text).width / 100 * sizePt;
+    }
+  } catch (e) { /* bỏ qua */ }
+  return [...String(text)].reduce((w, ch) => w + (/[A-ZĐÂÊÔƠƯĂÁÀẢÃẠ-Ỹ]/.test(ch) ? 0.68 : ch === ' ' ? 0.25 : /[-–.,:;()\/]/.test(ch) ? 0.3 : 0.47), 0) * sizePt * (bold ? 1.05 : 1);
+}
+function setMeasure(fn) { _measure = fn; }
+const PT2CM = 2.54 / 72;
 
 function buildDeclDoc(decl, prev, settings = {}) {
   const B = []; const lanDau = decl.phuongThuc === 'lan_dau';
@@ -788,25 +803,31 @@ function buildDeclDoc(decl, prev, settings = {}) {
   // Đầu trang
   const coLines = (decl.tenCoQuanDauTrang || 'TÊN CƠ QUAN, ĐƠN VỊ').toUpperCase().split(/\n/).map(x => x.trim()).filter(Boolean);
   const dang = decl.quocHieu === 'dang';
-  const estW = (t, sz, bold) => t.length * sz * (bold ? 0.0192 : 0.0175); // ước lượng bề rộng chữ (cm)
-  const leftCell = coLines.map((t, i) => P([R(t, { b: i === coLines.length - 1 || coLines.length === 1 })], { align: 'center', before: 0, after: 0, size: 12.5 }));
+  const HS = 13; // cỡ chữ khối tên cơ quan, quốc hiệu
+  const tight = { before: 0, after: 0, line: 1 };
+  const leftCell = coLines.map((t, i) => P([R(t, { b: i === coLines.length - 1 })], Object.assign({ align: 'center', size: HS }, tight)));
   const last = coLines[coLines.length - 1] || '';
-  leftCell.push({ t: 'hr', w: Math.max(1.5, estW(last, 12.5, true) / 3) });
+  leftCell.push({ t: 'hr', w: textWidthPt(last, HS, true) / 3 * PT2CM, size: HS });
+  const QH = 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', TN = 'Độc lập - Tự do - Hạnh phúc', DANG = 'ĐẢNG CỘNG SẢN VIỆT NAM';
   const rightCell = dang
-    ? [P([R('ĐẢNG CỘNG SẢN VIỆT NAM', { b: true })], { align: 'center', before: 0, after: 0, size: 13 }), { t: 'hr', w: estW('ĐẢNG CỘNG SẢN VIỆT NAM', 13, true) }]
-    : [P([R('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { b: true })], { align: 'center', before: 0, after: 0, size: 12.5 }), P([R('Độc lập - Tự do - Hạnh phúc', { b: true })], { align: 'center', before: 0, after: 0, size: 13 }), { t: 'hr', w: estW('Độc lập - Tự do - Hạnh phúc', 13, true) }];
-  B.push({ t: 'table', border: false, widths: [40, 60], rows: [[leftCell, rightCell]] });
-  B.push(P([R('BẢN KÊ KHAI TÀI SẢN, THU NHẬP', { b: true })], { align: 'center', before: 14, after: 0, size: 14 }));
-  B.push(P([R(PHUONG_THUC[decl.phuongThuc] + (decl.phuongThuc === 'hang_nam' ? ' NĂM ' + decl.nam : ''), { b: true })], { align: 'center', before: 0, after: 0 }));
-  B.push(P([R(`(Ngày chốt thông tin, dữ liệu về tài sản, thu nhập: ${fmtDate(decl.ngayChot) || '..../..../........'})`, { i: true })], { align: 'center', before: 0, after: 10 }));
+    ? [P([R(DANG, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), { t: 'hr', w: textWidthPt(DANG, HS, true) * PT2CM, size: HS }]
+    : [P([R(QH, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), P([R(TN, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), { t: 'hr', w: textWidthPt(TN, HS, true) * PT2CM, size: HS }];
+  B.push({ t: 'table', border: false, cm: [7.2, 10.4], ind: -0.8, widths: [41, 59], rows: [[leftCell, rightCell]] });
+  const kyTxt = decl.phuongThuc === 'hang_nam' ? 'KÊ KHAI HẰNG NĂM ' + decl.nam : PHUONG_THUC[decl.phuongThuc];
+  B.push(P([R('BẢN KÊ KHAI TÀI SẢN, THU NHẬP', { b: true })], { align: 'center', before: 24, after: 0, line: 1.15, size: 14 }));
+  B.push(P([R(kyTxt, { b: true })], { align: 'center', before: 0, after: 0, line: 1.15, size: 14 }));
+  const chotTxt = `(Ngày chốt thông tin, dữ liệu về tài sản, thu nhập: ${fmtDate(decl.ngayChot) || '..../..../........'})`;
+  B.push(P([R(chotTxt, { i: true })], { align: 'center', before: 0, after: 12, line: 1.15, size: 14 }));
+  B.push({ t: 'hr', w: textWidthPt(chotTxt, 14, false, true) / 3 * PT2CM, size: 14, rel: 'margin' });
+  const bodyStart = B.length;
 
   // I. THÔNG TIN CHUNG
   B.push(P([R('I. THÔNG TIN CHUNG', { b: true })]));
   B.push(P([R('1. Người kê khai tài sản, thu nhập', { b: true })]));
   const p = decl.nguoi;
-  B.push(P([R('- Họ và tên: ' + dots(p.hoTen)), R('          Ngày, tháng, năm sinh: ' + fmtDate(p.ngaySinh))], { indent: 0.5 }));
+  B.push(P([R('- Họ và tên: ' + dots(p.hoTen)), R('\tNgày, tháng, năm sinh: ' + fmtDate(p.ngaySinh))], { indent: 0.5 }));
   line('- Quê quán', p.queQuan); line('- Nơi thường trú', p.noiThuongTru); line('- Nơi ở hiện nay', p.noiOHienNay);
-  B.push(P([R('- Chức vụ/chức danh: ' + dots(p.chucVu)), R('          Hệ số phụ cấp chức vụ: ' + (blank(p.heSoPhuCap) ? 'Không' : p.heSoPhuCap))], { indent: 0.5 }));
+  B.push(P([R('- Chức vụ/chức danh: ' + dots(p.chucVu)), R('\tHệ số phụ cấp chức vụ: ' + (blank(p.heSoPhuCap) ? 'Không' : p.heSoPhuCap))], { indent: 0.5 }));
   line('- Cơ quan, đơn vị công tác', p.coQuan);
   B.push(P(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(p.soDinhDanh)}; ngày cấp: ${fmtDate(p.ngayCap)}; nơi cấp: ${dots(p.noiCap)}`, { indent: 0.5 }));
   line('- Số điện thoại', p.soDienThoai);
@@ -815,9 +836,9 @@ function buildDeclDoc(decl, prev, settings = {}) {
   if (!decl.coVoChong) B.push(P(KHONG, { indent: 0.5 }));
   else {
     const v = decl.voChong;
-    B.push(P([R('- Họ và tên: ' + dots(v.hoTen)), R('          Ngày, tháng, năm sinh: ' + fmtDate(v.ngaySinh))], { indent: 0.5 }));
+    B.push(P([R('- Họ và tên: ' + dots(v.hoTen)), R('\tNgày, tháng, năm sinh: ' + fmtDate(v.ngaySinh))], { indent: 0.5 }));
     line('- Quê quán', v.queQuan); line('- Nơi thường trú', v.noiThuongTru); line('- Nơi ở hiện nay', v.noiOHienNay);
-    B.push(P([R('- Chức vụ/chức danh/nghề nghiệp, công việc đang làm: ' + dots(v.ngheNghiep)), R('          Hệ số phụ cấp chức vụ (nếu có): ' + (blank(v.heSoPhuCap) ? 'Không' : v.heSoPhuCap))], { indent: 0.5 }));
+    B.push(P([R('- Chức vụ/chức danh/nghề nghiệp, công việc đang làm: ' + dots(v.ngheNghiep)), R('\tHệ số phụ cấp chức vụ (nếu có): ' + (blank(v.heSoPhuCap) ? 'Không' : v.heSoPhuCap))], { indent: 0.5 }));
     line('- Cơ quan, đơn vị công tác, nơi làm việc', v.noiLamViec);
     B.push(P(`- Số thẻ căn cước/Số CCCD/Số định danh cá nhân: ${dots(v.soDinhDanh)}; ngày cấp: ${fmtDate(v.ngayCap)}; nơi cấp: ${dots(v.noiCap)}`, { indent: 0.5 }));
     line('- Số điện thoại', v.soDienThoai);
@@ -826,7 +847,7 @@ function buildDeclDoc(decl, prev, settings = {}) {
   if (!decl.con.length) B.push(P(KHONG, { indent: 0.5 }));
   decl.con.forEach((c, i) => {
     B.push(P([R(`3.${i + 1}. Con thứ ${ordName(i)}:`, { i: true })], { indent: 0.25 }));
-    B.push(P([R('- Họ và tên: ' + dots(c.hoTen)), R('          Ngày, tháng, năm sinh: ' + fmtDate(c.ngaySinh))], { indent: 0.5 }));
+    B.push(P([R('- Họ và tên: ' + dots(c.hoTen)), R('\tNgày, tháng, năm sinh: ' + fmtDate(c.ngaySinh))], { indent: 0.5 }));
     line('- Nơi thường trú', c.noiThuongTru); line('- Nơi ở hiện nay', c.noiOHienNay);
     B.push(P(`- Số định danh cá nhân/Số thẻ căn cước: ${dots(c.soDinhDanh)}; ngày cấp: ${fmtDate(c.ngayCap)}; nơi cấp: ${dots(c.noiCap)}`, { indent: 0.5 }));
   });
@@ -1000,13 +1021,25 @@ function buildDeclDoc(decl, prev, settings = {}) {
   B.push(P([R('2. Nội dung thay đổi, bổ sung, điều chỉnh về kê khai tài sản, thu nhập (nếu có):', { b: true })]));
   B.push(P(blank(decl.thayDoi.taiSan) ? KHONG : decl.thayDoi.taiSan, { indent: 0.5 }));
 
-  // Chữ ký
+  // Chuẩn hoá định dạng thân bài theo văn bản hành chính: 14pt, giãn dòng 1,15, cách đoạn 6pt, thụt đầu dòng 1,27cm
+  for (let i = bodyStart; i < B.length; i++) {
+    const b = B[i]; if (b.t !== 'p') continue;
+    const txt = (b.runs || []).map(r => r.x).join('');
+    b.before = 6; b.after = 6; b.line = 1.15; b.indent = 0; delete b.size;
+    b.firstLine = (b.align === 'center' || /^[IVX]+\.\s/.test(txt)) ? 0 : 1.27;
+    if (txt.includes('\t') && b.align === 'both') b.align = 'left';
+    b.keepNext = (b.runs || []).every(r => r.b) && txt.length < 140;
+  }
+  const lastBody = [...B].reverse().find(b => b.t === 'p'); if (lastBody) { lastBody.after = 12; lastBody.keepNext = false; }
+
+  // Chữ ký (cách đoạn cuối thân bài đúng 12pt, không chèn dòng trống)
   const d = decl.ngayKeKhai ? new Date(decl.ngayKeKhai + 'T00:00:00') : null;
   const dd = decl.diaDanh || '......';
   const ngayStr = d ? `${dd}, ngày ${pad(d.getDate())} tháng ${pad(d.getMonth() + 1)} năm ${d.getFullYear()}` : `${dd}, ngày ..... tháng ..... năm ........`;
-  B.push({ t: 'table', border: false, widths: [50, 50], keep: true, rows: [[
-    [P([R(`${dd}, ngày ..... tháng ..... năm ........`, { i: true })], { align: 'center', before: 12 }), P([R('NGƯỜI NHẬN BẢN KÊ KHAI', { b: true })], { align: 'center', before: 0, after: 0 }), P([R('(Ký, ghi rõ họ tên, chức vụ/chức danh)', { i: true })], { align: 'center', before: 0 })],
-    [P([R(ngayStr, { i: true })], { align: 'center', before: 12 }), P([R('NGƯỜI KÊ KHAI TÀI SẢN', { b: true })], { align: 'center', before: 0, after: 0 }), P([R('(Ký, ghi rõ họ tên)', { i: true })], { align: 'center', before: 0 }), P('', { before: 48 }), P([R(dots(p.hoTen), { b: true })], { align: 'center' })]
+  const sp = { before: 0, after: 0, line: 1.15, align: 'center' };
+  B.push({ t: 'table', border: false, cm: [8.2, 8.8], ind: -0.5, widths: [50, 50], keep: true, rows: [[
+    [P([R(`${dd}, ngày ..... tháng ..... năm ......`, { i: true })], sp), P([R('NGƯỜI NHẬN BẢN KÊ KHAI', { b: true })], sp), P([R('(Ký, ghi rõ họ tên, chức vụ/chức danh)', { i: true })], sp)],
+    [P([R(ngayStr, { i: true })], sp), P([R('NGƯỜI KÊ KHAI TÀI SẢN', { b: true })], sp), P([R('(Ký, ghi rõ họ tên)', { i: true })], sp), P('', sp), P('', sp), P('', sp), P('', sp), P([R(dots(p.hoTen), { b: true })], sp)]
   ]] });
   return B;
 }
@@ -1088,43 +1121,63 @@ function zip(files) {
 const xe = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 function docxPara(b, size) {
   const sz = (b.size || size) * 2;
-  const ppr = `<w:pPr><w:spacing w:before="${Math.round((b.before ?? 2) * 20)}" w:after="${Math.round((b.after ?? 2) * 20)}" w:line="264" w:lineRule="auto"/>${b.indent ? `<w:ind w:left="${Math.round(b.indent * 567)}"/>` : ''}<w:jc w:val="${b.align === 'both' ? 'both' : b.align}"/></w:pPr>`;
+  const line = Math.round(240 * (b.line || 1.1));
+  const ind = (b.indent || b.firstLine) ? `<w:ind w:left="${Math.round((b.indent || 0) * 567)}"${b.firstLine ? ` w:firstLine="${Math.round(b.firstLine * 567)}"` : ''}/>` : '';
+  const hasTab = (b.runs || []).some(r => String(r.x || '').includes('\t'));
+  const ppr = `<w:pPr>${b.keepNext ? '<w:keepNext/>' : ''}${hasTab ? '<w:tabs><w:tab w:val="left" w:pos="4820"/></w:tabs>' : ''}<w:spacing w:before="${Math.round((b.before ?? 2) * 20)}" w:after="${Math.round((b.after ?? 2) * 20)}" w:line="${line}" w:lineRule="auto"/>${ind}<w:jc w:val="${b.align === 'both' ? 'both' : b.align}"/></w:pPr>`;
   const runs = (b.runs || []).map(r => {
     const rpr = `<w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>${r.b ? '<w:b/>' : ''}${r.i ? '<w:i/>' : ''}${r.u ? '<w:u w:val="single"/>' : ''}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr>`;
-    return String(r.x ?? '').split('\n').map((t, i) => `${i ? `<w:r>${rpr}<w:br/></w:r>` : ''}<w:r>${rpr}<w:t xml:space="preserve">${xe(t)}</w:t></w:r>`).join('');
+    return String(r.x ?? '').split('\n').map((t, i) => `${i ? `<w:r>${rpr}<w:br/></w:r>` : ''}` + t.split('\t').map((seg, j) => `${j ? `<w:r>${rpr}<w:tab/></w:r>` : ''}<w:r>${rpr}<w:t xml:space="preserve">${xe(seg)}</w:t></w:r>`).join('')).join('');
   }).join('');
-  return `<w:p>${ppr}${runs}</w:p>`;
+  return `<w:p>${ppr}${runs}${b._hr || ''}</w:p>`;
 }
-function docxHr(b, containerTw) {
-  const w = Math.round(b.w * 567); const ind = Math.max(0, Math.round((containerTw - 160 - w) / 2));
-  return `<w:p><w:pPr><w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="000000"/></w:pBdr><w:spacing w:before="50" w:after="0" w:line="120" w:lineRule="exact"/><w:ind w:left="${ind}" w:right="${ind}"/></w:pPr><w:r><w:rPr><w:sz w:val="4"/></w:rPr><w:t></w:t></w:r></w:p>`;
+// Đường kẻ ngang vẽ riêng (DrawingML), căn giữa theo dòng chữ ngay phía trên
+let _shapeId = 100;
+function docxLineRun(hr, prev, size) {
+  const cx = Math.round(hr.w * 360000); const id = ++_shapeId;
+  const fs = (prev && prev.size) || hr.size || size;
+  const y = Math.round(((prev ? (prev.before || 0) : 0) + fs * ((prev && prev.line) || 1) * 1.15 + 3.5) * 12700);
+  return `<w:r><w:drawing><wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="${251659264 + id}" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1"><wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="${hr.rel || 'column'}"><wp:align>center</wp:align></wp:positionH><wp:positionV relativeFrom="paragraph"><wp:posOffset>${y}</wp:posOffset></wp:positionV><wp:extent cx="${cx}" cy="0"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/><wp:docPr id="${id}" name="Line ${id}"/><wp:cNvGraphicFramePr/><a:graphic><a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp><wps:cNvCnPr/><wps:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="0"/></a:xfrm><a:prstGeom prst="line"><a:avLst/></a:prstGeom><a:ln w="9525"><a:solidFill><a:srgbClr val="000000"/></a:solidFill></a:ln></wps:spPr><wps:bodyPr/></wps:wsp></a:graphicData></a:graphic></wp:anchor></w:drawing></w:r>`;
+}
+// Gắn đường kẻ vào đoạn chữ đứng trước nó
+function attachHr(list, size) {
+  const out = [];
+  list.forEach(b => { if (b.t === 'hr') { const prev = out[out.length - 1]; if (prev && prev.t === 'p') prev._hr = (prev._hr || '') + docxLineRun(b, prev, size); } else out.push(Object.assign({}, b)); });
+  return out;
 }
 function docxTable(t, size, textWidth) {
-  const tw = textWidth; const widths = t.widths.map(w => Math.round(tw * w / 100));
+  const widths = t.cm ? t.cm.map(c => Math.round(c * 567)) : t.widths.map(w => Math.round(textWidth * w / 100)); const tw = widths.reduce((a, b) => a + b, 0);
   const bd = t.border ? `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(s => `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="000000"/>`).join('')}</w:tblBorders>` : `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(s => `<w:${s} w:val="nil"/>`).join('')}</w:tblBorders>`;
-  const rows = t.rows.map((r, ri) => `<w:tr>${t.keep ? '<w:trPr><w:cantSplit/></w:trPr>' : (t.border && ri === 0 ? '<w:trPr><w:tblHeader/></w:trPr>' : '')}${r.map((cell, ci) => `<w:tc><w:tcPr><w:tcW w:w="${widths[ci]}" w:type="dxa"/></w:tcPr>${(cell.length ? cell : [P('')]).map(b => b.t === 'hr' ? docxHr(b, widths[ci]) : docxPara(b, size)).join('')}</w:tc>`).join('')}</w:tr>`).join('');
-  return `<w:tbl><w:tblPr><w:tblW w:w="${tw}" w:type="dxa"/><w:tblLayout w:type="fixed"/>${bd}<w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`;
+  const rows = t.rows.map((r, ri) => `<w:tr>${t.keep ? '<w:trPr><w:cantSplit/></w:trPr>' : (t.border && ri === 0 ? '<w:trPr><w:tblHeader/></w:trPr>' : '')}${r.map((cell, ci) => `<w:tc><w:tcPr><w:tcW w:w="${widths[ci]}" w:type="dxa"/></w:tcPr>${attachHr(cell.length ? cell : [P('')], size).map(b => docxPara(b, size)).join('')}</w:tc>`).join('')}</w:tr>`).join('');
+  return `<w:tbl><w:tblPr><w:tblW w:w="${tw}" w:type="dxa"/>${t.ind ? `<w:tblInd w:w="${Math.round(t.ind * 567)}" w:type="dxa"/>` : ''}<w:tblLayout w:type="fixed"/>${bd}<w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`;
 }
 function buildDocx(blocks, o = {}) {
-  const size = o.fontSize || 13;
+  const size = o.fontSize || 14;
+  _shapeId = 100;
   const landscape = !!o.landscape;
   const W = landscape ? 16838 : 11906, H = landscape ? 11906 : 16838;
   const mT = 1134, mB = 1134, mL = 1701, mR = 1134; // 2cm, 2cm, 3cm, 2cm
   const textWidth = W - mL - mR;
-  const body = blocks.map(b => b.t === 'table' ? docxTable(b, size, textWidth) : b.t === 'pagebreak' ? '<w:p><w:r><w:br w:type="page"/></w:r></w:p>' : docxPara(b, size)).join('');
-  const ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const body = attachHr(blocks, size).map(b => b.t === 'table' ? docxTable(b, size, textWidth) : b.t === 'pagebreak' ? '<w:p><w:r><w:br w:type="page"/></w:r></w:p>' : docxPara(b, size)).join('');
+  const ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"';
   const footerTxt = o.footer || '';
-  const footer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${ns}><w:p><w:pPr><w:tabs><w:tab w:val="right" w:pos="${textWidth}"/></w:tabs></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:i/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${xe(footerTxt)}</w:t></w:r><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:tab/><w:t xml:space="preserve">Trang </w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">/</w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:instrText xml:space="preserve"> NUMPAGES </w:instrText></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:t>1</w:t></w:r><w:r><w:rPr><w:sz w:val="20"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`;
-  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${ns}><w:body>${body}<w:sectPr><w:footerReference w:type="default" r:id="rIdF1"/><w:pgSz w:w="${W}" w:h="${H}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="${mT}" w:right="${mR}" w:bottom="${mB}" w:left="${mL}" w:header="567" w:footer="454" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const rf = `<w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>`;
+  const footer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${ns}><w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr>${rf}<w:i/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">${xe(footerTxt)}</w:t></w:r></w:p></w:ftr>`;
+  const header = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr ${ns}><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:t>2</w:t></w:r><w:r><w:rPr>${rf}<w:sz w:val="${size * 2}"/></w:rPr><w:fldChar w:fldCharType="end"/></w:r></w:p></w:hdr>`;
+  const headerFirst = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr ${ns}><w:p/></w:hdr>`;
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${ns}><w:body>${body}<w:sectPr><w:headerReference w:type="default" r:id="rIdH1"/><w:headerReference w:type="first" r:id="rIdH2"/><w:footerReference w:type="default" r:id="rIdF1"/><w:footerReference w:type="first" r:id="rIdF2"/><w:pgSz w:w="${W}" w:h="${H}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="${mT}" w:right="${mR}" w:bottom="${mB}" w:left="${mL}" w:header="567" w:footer="454" w:gutter="0"/><w:titlePg/></w:sectPr></w:body></w:document>`;
   const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:eastAsia="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="${size * 2}"/><w:szCs w:val="${size * 2}"/><w:lang w:val="vi-VN"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`;
   const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
   const files = [
-    { name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>` },
+    { name: '[Content_Types].xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/word/footer2.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/header2.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>` },
     { name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>` },
-    { name: 'word/_rels/document.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdF1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>` },
+    { name: 'word/_rels/document.xml.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdF1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/><Relationship Id="rIdF2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer2.xml"/><Relationship Id="rIdH1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/><Relationship Id="rIdH2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header2.xml"/></Relationships>` },
     { name: 'word/document.xml', data: doc },
     { name: 'word/styles.xml', data: styles },
     { name: 'word/footer1.xml', data: footer },
+    { name: 'word/footer2.xml', data: footer },
+    { name: 'word/header1.xml', data: header },
+    { name: 'word/header2.xml', data: headerFirst },
     { name: 'docProps/core.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(o.title || 'Bản kê khai tài sản, thu nhập')}</dc:title><dc:creator>${xe(o.creator || '')}</dc:creator><dc:description>${xe('Lập bằng phần mềm ' + APP.name + ' ' + APP.version + ' — ' + APP.copyright)}</dc:description><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created></cp:coreProperties>` },
     { name: 'docProps/app.xml', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>${xe(APP.name + ' ' + APP.version)}</Application><Company>${xe(APP.copyright)}</Company></Properties>` }
   ];
@@ -1133,8 +1186,9 @@ function buildDocx(blocks, o = {}) {
 
 // Xem trước HTML từ cùng mô hình
 function blocksToHtml(blocks, size = 13) {
-  const para = b => `<p style="text-align:${b.align === 'both' ? 'justify' : b.align};margin:${(b.before ?? 2)}pt 0 ${(b.after ?? 2)}pt ${(b.indent || 0)}cm;${b.size ? 'font-size:' + b.size + 'pt;' : ''}">${(b.runs || []).map(r => { let s = xe(r.x).replace(/\n/g, '<br>'); if (r.b) s = `<b>${s}</b>`; if (r.i) s = `<i>${s}</i>`; if (r.u) s = `<u>${s}</u>`; return s; }).join('') || '&nbsp;'}</p>`;
+  const para = b => `<p style="text-align:${b.align === 'both' ? 'justify' : b.align};margin:${(b.before ?? 2)}pt 0 ${(b.after ?? 2)}pt ${(b.indent || 0)}cm;text-indent:${b.firstLine || 0}cm;line-height:${(b.line || 1.1) * 1.15};${b.size ? 'font-size:' + b.size + 'pt;' : ''}">${(b.runs || []).map(r => { let s = xe(r.x).replace(/\n/g, '<br>').replace(/\t/g, '&emsp;&emsp;&emsp;'); if (r.b) s = `<b>${s}</b>`; if (r.i) s = `<i>${s}</i>`; if (r.u) s = `<u>${s}</u>`; return s; }).join('') || '&nbsp;'}</p>`;
   return `<div class="doc" style="font-size:${size}pt">` + blocks.map(b => {
+    if (b.t === 'hr') return `<div class="hr" style="width:${b.w}cm;margin-top:-4pt;margin-bottom:6pt"></div>`;
     if (b.t === 'table') return `<table class="${b.border ? 'bd' : 'nb'}" style="width:100%">${b.rows.map(r => `<tr>${r.map((c, i) => `<td style="width:${b.widths[i]}%">${c.map(b => b.t === 'hr' ? `<div class="hr" style="width:${b.w}cm"></div>` : para(b)).join('')}</td>`).join('')}</tr>`).join('')}</table>`;
     if (b.t === 'pagebreak') return '<div class="pb"></div>';
     return para(b);
@@ -1192,7 +1246,7 @@ const API = { APP, NGUONG, NGUONG_BO_SUNG, LUONG_CO_SO_MAC_DINH, PHUONG_THUC, PH
   uid, num, fmtMoney, fmtVND, fmtDate, todayISO, addDays, clone, blank, docSo, ordName, ageAt,
   newDecl, newHoSo, newItem, emptyChild, itemValue, groupTotal, incomeTotals, netWorth, calcSalary, monthsBetween, incomePeriod,
   compareDecls, applyBienDongSuggest, rollForward, normalizeDecl, review,
-  buildDeclDoc, buildListDoc, buildTrackDoc, buildCommentDoc, buildDocx, blocksToHtml, zip, crc32,
+  buildDeclDoc, buildListDoc, buildTrackDoc, buildCommentDoc, buildDocx, blocksToHtml, zip, crc32, textWidthPt, setMeasure,
   encryptJSON, decryptJSON, isEncrypted, cryptoOK, exportStructured };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.KK = API;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1322,7 +1376,9 @@ function splitLabels(line, labels) {
   const FREE = new Set(['thongTinKhac', 'ghiChu', 'nguon', 'tinhTrang', 'minhChung']);
   const fi = ok.findIndex(h => FREE.has(h.k)); if (fi >= 0) ok = ok.slice(0, fi + 1);
   const out = {};
-  ok.forEach((h, i) => { const raw = line.slice(h.e, i + 1 < ok.length ? ok[i + 1].s : line.length); const v = cleanVal(raw.replace(/^\s*(\(\d+\)|\d+)?\s*[:：]/, '')); if (!(h.k in out) || !out[h.k]) out[h.k] = v; });
+  ok.forEach((h, i) => { const raw = line.slice(h.e, i + 1 < ok.length ? ok[i + 1].s : line.length); let v = cleanVal(raw.replace(/^\s*(\(\d+\)|\d+)?\s*[:：]/, ''));
+    if (FREE.has(h.k) && i === ok.length - 1) { const full = norm(raw.replace(/^\s*(\(\d+\)|\d+)?\s*[:：]/, '')).replace(/[.…]{3,}/g, ' ').trim(); if (/\.$/.test(full) && v && !/\.$/.test(v)) v += '.'; }
+    if (!(h.k in out) || !out[h.k]) out[h.k] = v; });
   return out;
 }
 
@@ -1351,6 +1407,7 @@ function parseDeclText(rawLines) {
   if (dateLine) { d.ngayChot = parseDate(dateLine); }
 
   // ngày ký ở cuối bản
+  { const sig = lines.slice(-25).reverse().find(x => /,\s*ngay\s*\d{1,2}\s*thang/.test(strip(x))); if (sig) { const parts = sig.split(' | '); const tail = parts[parts.length - 1]; const m = tail.match(/^\s*([^,|]{2,40}),\s*ng[aà]y/i); if (m && !/^\.+$/.test(m[1].trim())) d.diaDanh = m[1].trim(); } }
   for (let i = lines.length - 1; i > lines.length - 25 && i >= 0; i--) { const s = strip(lines[i]); if (/ngay\s*\d{1,2}\s*thang\s*\d{1,2}\s*nam\s*\d{4}/.test(s)) { const all2 = [...s.matchAll(/ngay\s*(\d{1,2})\s*thang\s*(\d{1,2})\s*nam\s*(\d{4})/g)]; const m = all2[all2.length - 1]; d.ngayKeKhai = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; break; } }
   if (!d.ngayChot) d.ngayChot = d.ngayKeKhai;
   if (rep.mau === 'NĐ 130/2020/NĐ-CP' && d.ngayChot && d.ngayKeKhai && d.ngayChot !== d.ngayKeKhai) {
@@ -1401,7 +1458,7 @@ function parseDeclText(rawLines) {
     if (/^ii\.\s*thong tin mo ta/.test(s)) { part = 2; group = null; cur = null; continue; }
     if (/^iii\.\s*bien dong/.test(s)) { part = 3; continue; }
     if (/^iv\.\s*noi dung thay doi/.test(s)) { part = 4; continue; }
-    if (/^nguoi nhan ban ke khai|^nguoi ke khai tai san/.test(s)) { part = 9; continue; }
+    if (/^nguoi nhan ban ke khai|^nguoi ke khai tai san/.test(s) || /nguoi nhan ban ke khai|nguoi ke khai tai san/.test(s) && /ngay/.test(s)) { part = 9; continue; }
     if (part === 1) {
       if (/^1\.\s*nguoi ke khai/.test(s)) { person = d.nguoi; continue; }
       if (/^2\.\s*(vo|chong)\b/.test(s)) { person = d.voChong; d.coVoChong = true; continue; }
@@ -1456,6 +1513,13 @@ function parseDeclText(rawLines) {
         continue;
       }
       if (group === 'thuNhap') {
+        const km = s.match(/^\(?tu ngay\s*(\d{1,2}\/\d{1,2}\/\d{4})\s*den ngay\s*(\d{1,2}\/\d{1,2}\/\d{4})/);
+        if (km) { const tu = parseDate(km[1]); d._kyTu = tu; continue; }
+        if (/^\+\s*thu nhap tu luong/.test(s)) { const n = parseMoney(line.split(':').slice(1).join(':')); if (n) { if (d._tnWho === 'vc') d.thuNhap.voChong.luong = String(n); else d.thuNhap.ban.luong = String(n); incomeDone = true; } continue; }
+        if (/^\+\s*thu nhap tu kinh doanh/.test(s)) { const after2 = line.split(':').slice(1).join(':'); const n = parseMoney(after2.replace(/\([^)]*\)/g, '')); const gc = (after2.match(/\(([^)]*)\)/) || [])[1] || ''; const tgt = d._tnWho === 'vc' ? d.thuNhap.voChong : d.thuNhap.ban; if (n) { tgt.khac = String(n); tgt.khacGhiChu = gc; } continue; }
+        if (/^-\s*thu nhap cua nguoi ke khai/.test(s)) { d._tnWho = 'ban'; if (/gom\s*:?\s*$/.test(s)) continue; }
+        if (/^-\s*thu nhap cua vo\/chong/.test(s)) { d._tnWho = 'vc'; if (/gom\s*:?\s*$/.test(s)) continue; }
+        if (/^-\s*tong thu nhap giua hai lan/.test(s)) continue;
         const after = cleanVal(line.split(':').slice(1).join(':')); const n = parseMoney(after.split(/,\s*gồm/i)[0]);
         if (/cua nguoi ke khai/.test(s) && n) { d.thuNhap.ban.luong = String(n); incomeDone = true; }
         else if (/vo|chong/.test(s) && /thu nhap/.test(s) && n) { d.thuNhap.voChong.luong = String(n); }
@@ -1475,14 +1539,23 @@ function parseDeclText(rawLines) {
       setItem(group, kv);
       continue;
     }
+    if (part === 3) {
+      let m = s.match(/^([12])\.\d+\.\s*tai san, thu nhap (tang|giam) thu [^:]*:/);
+      if (m) { const rest = line.slice(line.indexOf(':') + 1); const gi = rest.search(/;\s*gi[aá] tr[iị] (t[aă]ng|gi[aả]m)\s*:/i); const moTa = cleanVal(gi >= 0 ? rest.slice(0, gi) : rest); const gt = gi >= 0 ? parseMoney(rest.slice(gi)) : 0; const it = { id: K.uid(), auto: false, moTa, giaTri: gt ? String(gt) : '', giaiTrinh: '', minhChung: '' }; d.bienDong[m[2] === 'tang' ? 'tang' : 'giam'].push(it); d._bd = it; continue; }
+      if (d._bd && /^-\s*(giai trinh|nguyen nhan)/.test(s)) { d._bd.giaiTrinh = norm(line.slice(line.indexOf(':') + 1)); continue; }
+      if (d._bd && /^-\s*tai lieu minh chung/.test(s)) { d._bd.minhChung = norm(line.slice(line.indexOf(':') + 1)); continue; }
+      continue;
+    }
     if (part === 4) {
       if (/^1\.\s*noi dung/.test(s)) { sub = 'ttc'; continue; }
       if (/^2\.\s*noi dung/.test(s)) { sub = 'ts'; continue; }
-      if (isNone(line)) continue;
+      if (/^khong co$/.test(s)) continue;
       if (sub === 'ttc') d.thayDoi.thongTinChung = [d.thayDoi.thongTinChung, line].filter(Boolean).join('\n');
       if (sub === 'ts') d.thayDoi.taiSan = [d.thayDoi.taiSan, line].filter(Boolean).join('\n');
     }
   }
+  if (d._kyTu) { d.ngayKeKhaiTruoc = K.addDays(d._kyTu, -1); }
+  delete d._kyTu; delete d._tnWho; delete d._bd;
   // Tiền chỉ có tổng, không có chi tiết
   const tienCt = K.groupTotal(d, K.MONEY_KEYS);
   if (moneyTotal && !tienCt) { const it = K.newItem('tienGuiKhac'); it.moTa = 'Tổng tiền theo bản kê khai cũ' + (rep._tienMoTa ? ': ' + rep._tienMoTa : '') + ' (cần tách theo 5.1–5.4)'; it.giaTri = String(moneyTotal); d.ts.tienGuiKhac.push(it); rep.canhBao.push('Bản cũ chỉ ghi tổng tiền ' + K.fmtVND(moneyTotal) + ' — đã đưa vào "Các loại tiền gửi khác"; hãy tách theo tiền mặt, tài khoản, sổ tiết kiệm ở kỳ mới.'); }
@@ -1586,7 +1659,7 @@ let ui = { mode: 'kekhai', page: 'ky', openItems: {} };
 const dmPw = {}; // mật khẩu file của đầu mối: chỉ giữ trong bộ nhớ phiên, không lưu xuống máy
 
 function defaultDB() {
-  return { v: 1, createdAt: new Date().toISOString(), settings: { lcs: K.clone(K.LUONG_CO_SO_MAC_DINH), hanNop: '', fontSize: 13, soBan: 2, keKhaiDuoiNguong: false, lock: false, lastBackup: '' }, hoso: [], cur: { hosoId: null, declId: null }, dauMoi: { meta: { donVi: '', nam: new Date().getFullYear(), nguoiKy: '', chucDanhKy: 'Thủ trưởng đơn vị', diaDanh: '', soBo: 3 }, items: [] } };
+  return { v: 1, createdAt: new Date().toISOString(), settings: { lcs: K.clone(K.LUONG_CO_SO_MAC_DINH), hanNop: '', fontSize: 14, soBan: 2, keKhaiDuoiNguong: false, lock: false, lastBackup: '' }, hoso: [], cur: { hosoId: null, declId: null }, dauMoi: { meta: { donVi: '', nam: new Date().getFullYear(), nguoiKy: '', chucDanhKy: 'Thủ trưởng đơn vị', diaDanh: '', soBo: 3 }, items: [] } };
 }
 function loadDB() {
   try {
@@ -1599,6 +1672,7 @@ function loadDB() {
 function fixDB() {
   const d = defaultDB();
   db.settings = Object.assign(d.settings, db.settings || {});
+  if (!db.settings.fmtHC) { db.settings.fontSize = 14; db.settings.fmtHC = 1; } // chuẩn văn bản hành chính 14pt
   db.dauMoi = Object.assign(d.dauMoi, db.dauMoi || {}); db.dauMoi.meta = Object.assign(d.dauMoi.meta, db.dauMoi.meta || {});
   db.hoso = (db.hoso || []).map(h => Object.assign({ decls: [] }, h, { decls: (h.decls || []).map(K.normalizeDecl) }));
   db.cur = db.cur || { hosoId: null, declId: null };
@@ -2125,7 +2199,7 @@ document.addEventListener('click', async e => {
   if (b.dataset.pick === 'delHS') { m._close(null); if (await confirmBox('Xoá hồ sơ', `Xoá vĩnh viễn toàn bộ hồ sơ "${esc(h.label)}" (mọi kỳ kê khai) khỏi máy này? Nên sao lưu ra file trước.`, 'Xoá', true)) { db.hoso = db.hoso.filter(x => x.id !== h.id); db.cur = { hosoId: db.hoso[0]?.id || null, declId: db.hoso[0]?.decls.slice(-1)[0]?.id || null }; persist(); render(); } }
 });
 
-function exportOpts(d) { return { fontSize: +db.settings.fontSize || 13, footer: `Người kê khai ký: .................................`, title: 'Bản kê khai tài sản, thu nhập — ' + (d.nguoi.hoTen || ''), creator: d.nguoi.hoTen }; }
+function exportOpts(d) { return { fontSize: +db.settings.fontSize || 14, footer: `Người kê khai ký: ............................`, title: 'Bản kê khai tài sản, thu nhập — ' + (d.nguoi.hoTen || ''), creator: d.nguoi.hoTen }; }
 function declBlocks(d) { return K.buildDeclDoc(d, prevOf(curHoSo(), d), { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong }); }
 async function exportDocx(d, blocks, name) {
   const R = K.review(d, curPrev(), { lcs: db.settings.lcs }); const nErr = R.filter(x => x.level === 'loi').length;
@@ -2134,9 +2208,9 @@ async function exportDocx(d, blocks, name) {
   await saveBlob(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), name || `BanKeKhai_${safeName(d.nguoi.hoTen)}_${d.nam}.docx`);
 }
 function previewDecl(d, blocks) {
-  modal('Xem trước bản kê khai', `<div class="paper">${K.blocksToHtml(blocks || declBlocks(d), +db.settings.fontSize || 13)}</div>`, [{ label: 'Đóng' }, { label: ic('print') + 'In', onClick: () => { printDecl(d, blocks); return false; } }, { label: ic('download') + 'Xuất Word', cls: 'pri', onClick: () => { exportDocx(d, blocks); return false; } }]);
+  modal('Xem trước bản kê khai', `<div class="paper">${K.blocksToHtml(blocks || declBlocks(d), +db.settings.fontSize || 14)}</div>`, [{ label: 'Đóng' }, { label: ic('print') + 'In', onClick: () => { printDecl(d, blocks); return false; } }, { label: ic('download') + 'Xuất Word', cls: 'pri', onClick: () => { exportDocx(d, blocks); return false; } }]);
 }
-function printDecl(d, blocks) { $('#printArea').innerHTML = `<div class="paper">${K.blocksToHtml(blocks || declBlocks(d), +db.settings.fontSize || 13)}</div>`; setTimeout(() => window.print(), 50); }
+function printDecl(d, blocks) { $('#printArea').innerHTML = `<div class="paper">${K.blocksToHtml(blocks || declBlocks(d), +db.settings.fontSize || 14)}</div>`; setTimeout(() => window.print(), 50); }
 async function sendFileFlow() {
   const h = curHoSo(); const d = curDecl();
   const pw = await askPassword('Lưu file gửi đầu mối', 'File .tstn chứa toàn bộ hồ sơ của bạn (kể cả các kỳ trước để đầu mối đối chiếu biến động). Đặt mật khẩu để mã hoá; chỉ báo mật khẩu cho người tiếp nhận <b>qua kênh riêng</b> (gọi điện, gặp trực tiếp). Để trống nếu không mã hoá (không khuyến nghị).', true);
