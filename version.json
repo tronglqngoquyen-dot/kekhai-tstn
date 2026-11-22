@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "build": "2026-11-22",
-  "notes": "Giao diện mới; nhập bản kê khai năm trước từ file Word",
+  "notes": "Nhận diện bản kê khai cũ (mẫu NĐ 130) chính xác hơn",
   "download": "https://tronglqngoquyen-dot.github.io/kekhai-tstn/KeKhaiTSTN.html"
 }

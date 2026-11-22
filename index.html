@@ -269,7 +269,7 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
 
 const APP = {
   name: 'Kê khai TSTN',
-  version: '1.1.0',
+  version: '1.1.1',
   build: '2026-11-22',
   author: 'Lê Quang Trọng',
   place: 'đảo Phú Quý',
@@ -1258,6 +1258,7 @@ async function docxToLines(arrayBuffer) {
 const norm = s => String(s || '').normalize('NFC').replace(/ /g, ' ').replace(/[ \t]+/g, ' ').trim();
 const strip = s => norm(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 const cleanVal = v => { v = norm(v).replace(/^[:;,.\s]+/, '').replace(/[.…]{3,}/g, ' ').replace(/\(\d{1,2}\)/g, '').replace(/\s+/g, ' ').trim(); v = v.replace(/[;,.]+$/, '').trim(); return v; };
+const titleName = v => { if (!v) return v; const t = v.replace(/[.,;]+$/, '').trim(); if (t !== t.toUpperCase()) return t; return t.toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); };
 const isNone = v => !v || /^(khong co|khong|khong co gi|chua co|-+|x|0)$/.test(strip(v));
 
 // Tiền: "500.000.000 đồng", "500 triệu", "1,2 tỷ", "1 tỷ 250 triệu đồng", "khoảng 2.000.000.000đ"
@@ -1314,8 +1315,12 @@ function splitLabels(line, labels) {
   labels.forEach(({ k, re }) => { re.lastIndex = 0; let m; while ((m = re.exec(sl))) { const before = sl[m.index - 1]; if (m.index > 0 && /[a-z0-9]/.test(before)) continue; const pre = sl.slice(0, m.index); if ((pre.match(/\(/g) || []).length > (pre.match(/\)/g) || []).length) continue; hits.push({ k, s: m.index, e: m.index + m[0].length }); } });
   hits.sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s));
   const kept = []; let end = -1; hits.forEach(h => { if (h.s >= end) { kept.push(h); end = h.e; } });
-  // chỉ nhận nhãn có dấu ":" ngay sau (hoặc chú thích số), tránh bắt nhầm từ trong câu
-  const ok = kept.filter(h => /^\s*(\(\d+\)|\d+)?\s*[:：]/.test(sl.slice(h.e, h.e + 8)));
+  // chỉ nhận nhãn có dấu ":" ngay sau (hoặc chú thích số); riêng "ngày cấp", "nơi cấp" chấp nhận không có dấu hai chấm
+  const NOCOLON = new Set(['ngayCap', 'noiCap']);
+  let ok = kept.filter(h => /^\s*(\(\d+\)|\d+)?\s*[:：]/.test(sl.slice(h.e, h.e + 8)) || (NOCOLON.has(h.k) && /^\s+\S/.test(sl.slice(h.e, h.e + 3))));
+  // Nhãn dạng văn bản tự do: phần còn lại của dòng thuộc về nhãn này (tránh tách nhầm "Địa chỉ:" nằm trong "Thông tin khác")
+  const FREE = new Set(['thongTinKhac', 'ghiChu', 'nguon', 'tinhTrang', 'minhChung']);
+  const fi = ok.findIndex(h => FREE.has(h.k)); if (fi >= 0) ok = ok.slice(0, fi + 1);
   const out = {};
   ok.forEach((h, i) => { const raw = line.slice(h.e, i + 1 < ok.length ? ok[i + 1].s : line.length); const v = cleanVal(raw.replace(/^\s*(\(\d+\)|\d+)?\s*[:：]/, '')); if (!(h.k in out) || !out[h.k]) out[h.k] = v; });
   return out;
@@ -1348,6 +1353,10 @@ function parseDeclText(rawLines) {
   // ngày ký ở cuối bản
   for (let i = lines.length - 1; i > lines.length - 25 && i >= 0; i--) { const s = strip(lines[i]); if (/ngay\s*\d{1,2}\s*thang\s*\d{1,2}\s*nam\s*\d{4}/.test(s)) { const all2 = [...s.matchAll(/ngay\s*(\d{1,2})\s*thang\s*(\d{1,2})\s*nam\s*(\d{4})/g)]; const m = all2[all2.length - 1]; d.ngayKeKhai = `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; break; } }
   if (!d.ngayChot) d.ngayChot = d.ngayKeKhai;
+  if (rep.mau === 'NĐ 130/2020/NĐ-CP' && d.ngayChot && d.ngayKeKhai && d.ngayChot !== d.ngayKeKhai) {
+    rep.canhBao.push(`Ngày ghi ở tiêu đề (${K.fmtDate(d.ngayChot)}) khác ngày ký ở cuối bản (${K.fmtDate(d.ngayKeKhai)}). Ứng dụng lấy ngày ở tiêu đề làm ngày kê khai lần trước để tính kỳ thu nhập năm nay — nếu bản đã nộp ghi ngày khác, sửa ở trang "Kỳ kê khai".`);
+    d.ngayKeKhai = d.ngayChot;
+  }
   d.nam = Number((d.ngayChot || d.ngayKeKhai || '').slice(0, 4)) || (ny ? Number(ny[1]) : new Date().getFullYear() - 1);
 
   // --- Duyệt từng dòng theo trạng thái
@@ -1358,7 +1367,7 @@ function parseDeclText(rawLines) {
     const g = K.GROUP[gk]; const it = ensure(gk);
     Object.entries(obj).forEach(([k, v]) => {
       if (isNone(v) && k !== 'giaTri') return;
-      if (k === 'giaTri') { if (/khong xac dinh/.test(strip(v))) { it.giaTri_unk = true; it.giaTri_unkReason = cleanVal(v.replace(/kh[oô]ng x[aá]c [dđ][iị]nh[^()]*/i, '')).replace(/^\(|\)$/g, '') || 'Theo bản kê khai cũ'; } else { const n = parseMoney(v); if (n) it.giaTri = String(n); fxFromText(it, v); } return; }
+      if (k === 'giaTri') { if (/khong xac dinh/.test(strip(v))) { it.giaTri_unk = true; it.giaTri_unkReason = cleanVal(v.replace(/kh[oô]ng x[aá]c [dđ][iị]nh[^()]*/i, '')).replace(/^\(|\)$/g, '') || 'Theo bản kê khai cũ'; } else { const n = parseMoney(v.replace(/\([^)]*\)/g, '')) || parseMoney(v); if (n) it.giaTri = String(n); fxFromText(it, v); const pm = v.match(/\(([^)]+)\)/); if (pm && /mua|chuyen nhuong|tang|thua ke|xay|cho\b|nhan/.test(strip(pm[1])) && g.fields.some(f => f.k === 'nguon')) it.nguon = it.nguon || (pm[1].charAt(0).toUpperCase() + pm[1].slice(1)); } return; }
       if (k === 'dienTich') { it.dienTich = parseArea(v); return; }
       if (k === 'soDu') { const n = parseMoney(v); if (n) it.giaTri = String(n); return; }
       if (k === 'namSoHuu') { it.thongTinKhac = [it.thongTinKhac, 'Năm bắt đầu sở hữu: ' + v].filter(Boolean).join('; '); return; }
@@ -1395,13 +1404,15 @@ function parseDeclText(rawLines) {
     if (/^nguoi nhan ban ke khai|^nguoi ke khai tai san/.test(s)) { part = 9; continue; }
     if (part === 1) {
       if (/^1\.\s*nguoi ke khai/.test(s)) { person = d.nguoi; continue; }
-      if (/^2\.\s*vo hoac chong/.test(s)) { person = d.voChong; d.coVoChong = true; continue; }
+      if (/^2\.\s*(vo|chong)\b/.test(s)) { person = d.voChong; d.coVoChong = true; continue; }
       if (/^3\.\s*con chua thanh nien/.test(s)) { person = null; sub = 'con'; continue; }
       if (sub === 'con' && /con thu (nhat|hai|ba|tu|\d)/.test(s)) { person = K.emptyChild(); d.con.push(person); continue; }
       const kv = splitLabels(line, PERSON_LABELS);
       if (sub === 'con' && !person && kv.hoTen) { person = K.emptyChild(); d.con.push(person); }
       if (!person || !Object.keys(kv).length) { if (line.length > 3 && !/^\d+\.|^khong co$/.test(s)) rep.boQua.push(line); continue; }
       if (sub === 'con' && person && kv.hoTen && person.hoTen) { person = K.emptyChild(); d.con.push(person); }
+      // Phòng đề mục viết khác mẫu: đã có tên người kê khai mà gặp thêm "Họ và tên" thì coi là vợ/chồng
+      if (person === d.nguoi && kv.hoTen && d.nguoi.hoTen && !isNone(kv.hoTen)) { person = d.voChong; d.coVoChong = true; rep.canhBao.push('Đề mục vợ/chồng không đúng mẫu — đã tự nhận "' + titleName(kv.hoTen) + '" là vợ/chồng, hãy kiểm tra lại.'); }
       Object.entries(kv).forEach(([k, v]) => {
         if (isNone(v)) return;
         if (k === 'ngaySinh' || k === 'ngayCap') v = parseDate(v);
@@ -1409,7 +1420,8 @@ function parseDeclText(rawLines) {
         if (person === d.voChong && k === 'coQuan') k = 'noiLamViec';
         if (person === d.nguoi && k === 'ngheNghiep') k = 'chucVu';
         if (person === d.nguoi && k === 'noiLamViec') k = 'coQuan';
-        if (k === 'soDinhDanh') v = v.replace(/[^\d]/g, '') || v;
+        if (k === 'soDinhDanh') { const m = v.match(/\d{9,12}/); v = m ? m[0] : v; }
+        if (k === 'hoTen') v = titleName(v);
         if (k in person) person[k] = v;
       });
       continue;
@@ -1476,7 +1488,21 @@ function parseDeclText(rawLines) {
   if (moneyTotal && !tienCt) { const it = K.newItem('tienGuiKhac'); it.moTa = 'Tổng tiền theo bản kê khai cũ' + (rep._tienMoTa ? ': ' + rep._tienMoTa : '') + ' (cần tách theo 5.1–5.4)'; it.giaTri = String(moneyTotal); d.ts.tienGuiKhac.push(it); rep.canhBao.push('Bản cũ chỉ ghi tổng tiền ' + K.fmtVND(moneyTotal) + ' — đã đưa vào "Các loại tiền gửi khác"; hãy tách theo tiền mặt, tài khoản, sổ tiết kiệm ở kỳ mới.'); }
   else if (moneyTotal && tienCt && Math.abs(moneyTotal - tienCt) > 1000) rep.canhBao.push(`Tổng tiền ghi trong bản cũ (${K.fmtMoney(moneyTotal)}) khác tổng các khoản chi tiết đọc được (${K.fmtMoney(tienCt)}).`);
   // Dọn trường nội bộ
+  const blankItem = (g, it) => !g.fields.some(f => { const v = it[f.k]; if (f.t === 'select') return false; return v && String(v).trim() && !/^[.…\s]+$/.test(v); }) && !it.giaTri_unk && !(it.giaTri_fx);
+  K.GROUPS.forEach(g => { d.ts[g.key] = d.ts[g.key].filter(it => !blankItem(g, it)); });
   K.GROUPS.forEach(g => d.ts[g.key].forEach(it => {
+    // Tách "Thông tin khác" (mẫu cũ) thành nguồn hình thành / tình trạng / người đồng sở hữu theo mẫu mới
+    if (g.fields.some(f => f.k === 'nguon') && it.ghiChu) {
+      const parts = it.ghiChu.split(/(?<=[.;])\s+/).map(x => x.trim()).filter(Boolean); const rest = [];
+      parts.forEach(pt => {
+        const sp = strip(pt);
+        if (/^hien (dang|nay)|dang (su dung|trong|cho thue|kinh doanh|de khong|the chap)/.test(sp)) it.tinhTrang = [it.tinhTrang, pt.replace(/[.;]$/, '')].filter(Boolean).join('; ');
+        else if (/nhan chuyen nhuong|duoc (cho|tang|thua ke)|tu (mua|xay)|^mua /.test(sp) && !it.nguon) it.nguon = pt.replace(/[.;]$/, '');
+        else rest.push(pt);
+        if (/dong so huu/.test(sp)) it.dungTen = 'Đồng sở hữu với người khác';
+      });
+      it.ghiChu = rest.join(' ');
+    }
     delete it._g; delete it._imported;
     ['ghiChu', 'thongTinKhac', 'tinhTrang'].forEach(f => { if (!it[f]) return; const m = it[f].match(/Thuộc sở hữu\/sử dụng của:\s*([^.;]+)[.;]?\s*/); if (m) { const v = K.DUNG_TEN.find(x => x === m[1].trim()); if (v) it.dungTen = v; it[f] = it[f].replace(m[0], '').trim(); } });
     if ('dungTen' in it && !it.dungTen) it.dungTen = 'Người kê khai';
