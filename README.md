@@ -4,11 +4,12 @@
 
 - 🌐 Dùng ngay / cài đặt: https://tronglqngoquyen-dot.github.io/kekhai-tstn/
 - ⬇ Bản 1 file chạy không cần mạng: https://tronglqngoquyen-dot.github.io/kekhai-tstn/KeKhaiTSTN.html
-- Phiên bản: 1.0.0
+- Phiên bản: 1.1.0
 
 ## Tính năng
 - Đủ 4 phương thức: lần đầu, hằng năm, bổ sung, phục vụ công tác cán bộ (dùng chung 1 mẫu).
 - Nhập theo đúng thứ tự mục I → IV của mẫu; mục trống tự ghi "Không có".
+- **Nhập bản kê khai năm trước từ file Word (.docx)** — nhận diện cả mẫu cũ NĐ 130/2020 và mẫu NĐ 164/2026; hoặc dán nội dung copy từ PDF.
 - Nhiều hồ sơ (tự kê khai hoặc hỗ trợ kê khai hộ), nhiều kỳ; **tạo kỳ mới từ kỳ trước**.
 - Tự so sánh với kỳ trước để **gợi ý Mục III – biến động**; đối soát dòng tiền (tài sản tăng so với thu nhập).
 - Trợ lý tính thu nhập từ hệ số lương theo từng giai đoạn lương cơ sở (2.340.000đ → 2.530.000đ từ 01/7/2026).
