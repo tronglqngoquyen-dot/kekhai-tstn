@@ -269,8 +269,8 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
 
 const APP = {
   name: 'Kê khai TSTN',
-  version: '1.2.1',
-  build: '2026-11-22',
+  version: '1.3.0',
+  build: '2026-11-23',
   author: 'Lê Quang Trọng',
   place: 'đảo Phú Quý',
   phone: '0909084181',
@@ -637,6 +637,56 @@ function ageAt(birthISO, atISO) {
   return age;
 }
 
+
+// Đề nghị chỉnh sửa tương ứng với từng phát hiện (dùng cho đầu mối thẩm định)
+const FIXES = [
+  [/Chưa ghi ngày chốt/, 'Ghi ngày chốt thông tin, dữ liệu tại dòng "(Ngày … tháng … năm …)" dưới tiêu đề (chú thích 2).'],
+  [/tên cơ quan, đơn vị/, 'Ghi tên cơ quan, đơn vị ở góc trên bên trái bản kê khai.'],
+  [/không phải 12 chữ số/, 'Kiểm tra, ghi đúng số định danh cá nhân (12 chữ số) theo thẻ căn cước.'],
+  [/ngày cấp hoặc nơi cấp/, 'Ghi đủ ngày cấp và nơi cấp theo thẻ căn cước (chú thích 3).'],
+  [/hệ số phụ cấp chức vụ/, 'Ghi hệ số phụ cấp chức vụ theo quyết định bổ nhiệm/xếp lương hiện hưởng.'],
+  [/cấp huyện\/quận\/thị xã/, 'Ghi địa chỉ theo đơn vị hành chính sau sáp nhập (xã/phường/đặc khu, tỉnh/thành phố) từ 01/7/2025; nếu Giấy chứng nhận còn địa chỉ cũ thì ghi thêm địa chỉ cũ (chú thích 8).'],
+  [/Chưa ghi "(.+?)" của vợ\/chồng/, m => `Bổ sung "${m[1]}" của vợ/chồng.`],
+  [/Chưa ghi "(.+?)"/, m => `Bổ sung "${m[1]}" của người kê khai.`],
+  [/Chưa ghi họ tên con/, 'Bổ sung họ tên con chưa thành niên.'],
+  [/số định danh cá nhân của con/, 'Ghi số định danh cá nhân của con (ghi trên giấy khai sinh/thẻ căn cước).'],
+  [/không còn là con chưa thành niên/, 'Bỏ người con đã đủ 18 tuổi khỏi mục I.3; nêu thay đổi này tại Mục IV.1.'],
+  [/không xác định được giá trị" nhưng chưa ghi rõ lý do/, 'Ghi rõ lý do không xác định được giá trị (chú thích 10).'],
+  [/Chưa ghi giá trị/, 'Ghi giá trị tại thời điểm mua, nhận chuyển nhượng hoặc xác lập quyền (gồm thuế, phí); nếu không xác định được thì ghi "không xác định được giá trị" và nêu lý do (chú thích 10).'],
+  [/ngoại tệ và tỷ giá/, 'Ghi số lượng ngoại tệ và quy đổi ra đồng theo tỷ giá liên ngân hàng tại thời điểm sở hữu (chú thích 19, 20).'],
+  [/Chưa ghi địa chỉ/, 'Ghi địa chỉ cụ thể của tài sản theo đơn vị hành chính hiện hành (chú thích 8).'],
+  [/Chưa ghi diện tích/, 'Ghi diện tích (m²) theo Giấy chứng nhận hoặc diện tích thực tế nếu chưa có Giấy chứng nhận (chú thích 9, 15).'],
+  [/Chưa ghi Giấy chứng nhận/, 'Ghi số Giấy chứng nhận và tên người được cấp; nếu chưa có thì ghi "chưa được cấp Giấy chứng nhận" (chú thích 11).'],
+  [/nguồn hình thành/, 'Bổ sung nguồn hình thành: tự mua, nhận chuyển nhượng, được cho/tặng/thừa kế, tự tạo lập… từ tiền tự có, tiền vay của ai, tiền được cho tặng… (chú thích 12).'],
+  [/tình trạng quản lý/, 'Bổ sung tình trạng quản lý, sử dụng, sở hữu: đang sử dụng, cho thuê, kinh doanh, thế chấp, để không… (chú thích 12).'],
+  [/đứng tên hộ/, 'Ghi rõ họ tên, số định danh cá nhân của người đứng tên hộ/nhờ đứng tên tại mục "Tình trạng quản lý, sử dụng, sở hữu" (chú thích 12).'],
+  [/nước nào/, 'Ghi rõ tài sản đang ở nước nào (chú thích 31).'],
+  [/số tài khoản hoặc tên ngân hàng|số tài khoản\/số sổ hoặc tên tổ chức/, 'Ghi đủ số tài khoản/số sổ và tên tổ chức nơi gửi tiền, mở tài khoản.'],
+  [/thuộc sở hữu thực tế/, 'Ghi rõ số tiền thuộc sở hữu thực tế; các khoản vay, mượn, giữ hộ, quản lý hộ (chú thích 21).'],
+  [/thuộc vợ\/chồng nhưng chưa khai thông tin vợ\/chồng/, 'Bổ sung thông tin vợ/chồng tại mục I.2 hoặc sửa lại người sở hữu tài sản.'],
+  [/thuộc con chưa thành niên nhưng chưa khai/, 'Bổ sung thông tin con chưa thành niên tại mục I.3 hoặc sửa lại người sở hữu tài sản.'],
+  [/Chưa đối chiếu được kỳ tính thu nhập/, 'Đối chiếu tổng thu nhập với khoảng thời gian từ ngày kế tiếp sau lần kê khai trước đến ngày kê khai này; đính kèm bản kê khai năm trước để kiểm tra.'],
+  [/kỳ tính thu nhập/, 'Xác định kỳ thu nhập từ ngày kế tiếp sau ngày kê khai lần liền trước đến ngày kê khai lần này (chú thích 33).'],
+  [/Chưa kê khai thu nhập của người kê khai/, 'Kê khai tổng thu nhập giữa hai lần kê khai của người kê khai: lương, phụ cấp, trợ cấp và các nguồn khác (chú thích 33, 34).'],
+  [/thu nhập của vợ\/chồng/, 'Kê khai thu nhập của vợ/chồng; nếu không có thu nhập thì ghi "Không có".'],
+  [/chênh nhiều so với ước tính/, 'Đối chiếu lại tổng thu nhập từ lương, phụ cấp với bảng lương thực tế trong kỳ.'],
+  [/chưa đưa vào Mục III|có thể còn thiếu/, 'Bổ sung vào Mục III các tài sản, thu nhập tăng/giảm so với bản kê khai liền trước (chú thích 35, 36, 38).'],
+  [/chưa giải trình nguồn gốc/, 'Ghi giải trình nguồn gốc tài sản, thu nhập tăng thêm (chú thích 37).'],
+  [/chưa ghi nguyên nhân giảm/, 'Ghi nguyên nhân tài sản, thu nhập giảm (chú thích 39).'],
+  [/chưa được bù bởi thu nhập/, 'Giải trình rõ nguồn hình thành phần tài sản tăng vượt thu nhập (vay, bán tài sản, được cho/tặng/thừa kế…) kèm tài liệu minh chứng.'],
+  [/kê khai bổ sung/, 'Lưu ý nghĩa vụ kê khai bổ sung khi biến động tài sản, thu nhập trong năm từ 1 tỷ đồng trở lên.'],
+  [/Mục IV\.1/, 'Ghi nội dung thay đổi về thông tin chung tại Mục IV.1, nêu rõ lý do (chú thích 40).'],
+  [/tự đối chiếu với bản kê khai liền trước/, 'Đối chiếu với bản kê khai liền trước để kê khai đầy đủ biến động tại Mục III.'],
+  [/dưới ngưỡng|dưới 150 triệu/, 'Không bắt buộc kê khai; có thể giữ lại nếu muốn, hoặc bỏ và nêu tại Mục IV.2 nếu kỳ trước đã kê khai.'],
+  [/31\/12|hạn nộp/, 'Hoàn thành và nộp bản kê khai đúng thời hạn quy định.'],
+  [/sớm hơn ngày chốt/, 'Kiểm tra lại ngày chốt thông tin và ngày hoàn thành kê khai.']
+];
+function suggestFix(f) {
+  if (f.fix) return f.fix;
+  for (const [re, v] of FIXES) { const m = f.msg.match(re); if (m) return typeof v === 'function' ? v(m) : v; }
+  return 'Rà soát, chỉnh sửa theo hướng dẫn tại chú thích tương ứng của mẫu bản kê khai.';
+}
+
 function review(decl, prev, opts = {}) {
   const R = []; const add = (level, sec, msg, nav) => R.push({ level, sec, msg, nav: nav || sec });
   const lanDau = decl.phuongThuc === 'lan_dau';
@@ -730,7 +780,8 @@ function review(decl, prev, opts = {}) {
   const inc = incomeTotals(decl);
   if (!lanDau) {
     const per = incomePeriod(decl, prev);
-    if (!per || !per.tu) add('loi', 'II.10 Tổng thu nhập', 'Chưa xác định được kỳ tính thu nhập: cần ngày kê khai của lần liền trước (thu nhập tính từ ngày kế tiếp sau ngày kê khai lần trước đến ngày kê khai lần này — chú thích 33).', 'thunhap');
+    if ((!per || !per.tu) && decl.imported) add('canh_bao', 'II.10 Tổng thu nhập', 'Chưa đối chiếu được kỳ tính thu nhập vì chưa có bản kê khai năm trước (thu nhập tính từ ngày kế tiếp sau ngày kê khai lần trước — chú thích 33).', 'thunhap');
+    else if (!per || !per.tu) add('loi', 'II.10 Tổng thu nhập', 'Chưa xác định được kỳ tính thu nhập: cần ngày kê khai của lần liền trước (thu nhập tính từ ngày kế tiếp sau ngày kê khai lần trước đến ngày kê khai lần này — chú thích 33).', 'thunhap');
     if (inc.ban <= 0) add('loi', 'II.10 Tổng thu nhập', 'Chưa kê khai thu nhập của người kê khai giữa hai lần kê khai.', 'thunhap');
     if (decl.coVoChong && inc.vc <= 0) add('canh_bao', 'II.10 Tổng thu nhập', 'Chưa kê khai thu nhập của vợ/chồng (nếu không có thu nhập, ghi 0 và ghi chú "Không có thu nhập" ở mục nguồn khác).', 'thunhap');
     if (per && per.tu && per.den) {
@@ -748,7 +799,9 @@ function review(decl, prev, opts = {}) {
       const sug = compareDecls(decl, prev);
       const has = new Set([...decl.bienDong.tang, ...decl.bienDong.giam].map(x => x.key));
       const miss = [...sug.tang, ...sug.giam].filter(s => !has.has(s.key));
-      if (miss.length) add('loi', 'III. Biến động', `Có ${miss.length} biến động so với kỳ trước chưa đưa vào Mục III. Bấm "Cập nhật gợi ý biến động".`, 'biendong');
+      const manualN = [...decl.bienDong.tang, ...decl.bienDong.giam].filter(x => !x.key).length;
+      if (miss.length && manualN === 0) add('loi', 'III. Biến động', `Có ${miss.length} biến động so với kỳ trước chưa đưa vào Mục III: ${miss.slice(0, 4).map(x => x.moTa).join('; ')}${miss.length > 4 ? '…' : ''}.`, 'biendong');
+      else if (miss.length > manualN) add('canh_bao', 'III. Biến động', `So với kỳ trước có ${miss.length} biến động, Mục III mới kê khai ${manualN} nội dung — có thể còn thiếu: ${miss.slice(0, 4).map(x => x.moTa).join('; ')}${miss.length > 4 ? '…' : ''}.`, 'biendong');
     }
     decl.bienDong.tang.forEach((x, i) => { if (blank(x.giaiTrinh)) add('loi', 'III.1 Tài sản, thu nhập tăng', `Mục tăng thứ ${ordName(i)} (${x.moTa}) chưa giải trình nguồn gốc tài sản tăng thêm.`, 'biendong'); });
     decl.bienDong.giam.forEach((x, i) => { if (blank(x.giaiTrinh)) add('loi', 'III.2 Tài sản, thu nhập giảm', `Mục giảm thứ ${ordName(i)} (${x.moTa}) chưa ghi nguyên nhân giảm.`, 'biendong'); });
@@ -768,6 +821,7 @@ function review(decl, prev, opts = {}) {
     const changedPerson = ['chucVu', 'coQuan', 'noiThuongTru', 'noiOHienNay', 'heSoPhuCap'].filter(k => (decl.nguoi[k] || '') !== (prev.nguoi[k] || ''));
     if ((changedPerson.length || decl.coVoChong !== prev.coVoChong || decl.con.length !== prev.con.length) && blank(decl.thayDoi.thongTinChung)) add('canh_bao', 'IV. Thay đổi thông tin chung', 'Thông tin chung (chức vụ, nơi ở, hôn nhân, con...) có thay đổi so với kỳ trước — nên ghi nội dung thay đổi và lý do vào Mục IV.1.', 'thaydoi');
   }
+  R.forEach(f => { f.fix = suggestFix(f); });
   return R;
 }
 
@@ -795,6 +849,12 @@ function textWidthPt(text, sizePt, bold, italic) {
   return [...String(text)].reduce((w, ch) => w + (/[A-ZĐÂÊÔƠƯĂÁÀẢÃẠ-Ỹ]/.test(ch) ? 0.68 : ch === ' ' ? 0.25 : /[-–.,:;()\/]/.test(ch) ? 0.3 : 0.47), 0) * sizePt * (bold ? 1.05 : 1);
 }
 function setMeasure(fn) { _measure = fn; }
+function fitHeadSize(lines, cellCm, base = 13) {
+  // chỉ thu nhỏ tối đa 1pt; nếu vẫn không vừa thì giữ cỡ gốc để Word tự xuống dòng theo kiểu truyền thống
+  const maxW = Math.max(...lines.map((t, i) => textWidthPt(t, 1, i === lines.length - 1)));
+  for (let sz = base; sz >= base - 1; sz -= 0.5) if (maxW * sz * (2.54 / 72) <= cellCm - 0.4) return sz;
+  return base;
+}
 const PT2CM = 2.54 / 72;
 
 function buildDeclDoc(decl, prev, settings = {}) {
@@ -805,9 +865,10 @@ function buildDeclDoc(decl, prev, settings = {}) {
   const dang = decl.quocHieu === 'dang';
   const HS = 13; // cỡ chữ khối tên cơ quan, quốc hiệu
   const tight = { before: 0, after: 0, line: 1 };
-  const leftCell = coLines.map((t, i) => P([R(t, { b: i === coLines.length - 1 })], Object.assign({ align: 'center', size: HS }, tight)));
+  const LS = fitHeadSize(coLines, 7.2, HS);
+  const leftCell = coLines.map((t, i) => P([R(t, { b: i === coLines.length - 1 })], Object.assign({ align: 'center', size: LS }, tight)));
   const last = coLines[coLines.length - 1] || '';
-  leftCell.push({ t: 'hr', w: textWidthPt(last, HS, true) / 3 * PT2CM, size: HS });
+  leftCell.push({ t: 'hr', w: textWidthPt(last, LS, true) / 3 * PT2CM, size: LS });
   const QH = 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', TN = 'Độc lập - Tự do - Hạnh phúc', DANG = 'ĐẢNG CỘNG SẢN VIỆT NAM';
   const rightCell = dang
     ? [P([R(DANG, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), { t: 'hr', w: textWidthPt(DANG, HS, true) * PT2CM, size: HS }]
@@ -1086,6 +1147,54 @@ function buildCommentDoc(item, meta = {}) {
   B.push(signBlock(meta));
   return B;
 }
+
+// Phiếu thẩm định sơ bộ và đề nghị chỉnh sửa (định dạng văn bản hành chính)
+function buildReviewDoc(it, meta = {}) {
+  const B = []; const HS = 13, tight = { before: 0, after: 0, line: 1 };
+  const coLines = (meta.donVi || 'TÊN CƠ QUAN, ĐƠN VỊ').toUpperCase().split(/\n/).map(x => x.trim()).filter(Boolean);
+  const LS = fitHeadSize(coLines, 7.2, HS);
+  const leftCell = coLines.map((t, i) => P([R(t, { b: i === coLines.length - 1 })], Object.assign({ align: 'center', size: LS }, tight)));
+  leftCell.push({ t: 'hr', w: textWidthPt(coLines[coLines.length - 1] || '', LS, true) / 3 * PT2CM, size: LS });
+  const TN = 'Độc lập - Tự do - Hạnh phúc';
+  const rightCell = [P([R('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { b: true })], Object.assign({ align: 'center', size: HS }, tight)), P([R(TN, { b: true })], Object.assign({ align: 'center', size: HS }, tight)), { t: 'hr', w: textWidthPt(TN, HS, true) * PT2CM, size: HS }];
+  B.push({ t: 'table', border: false, cm: [7.2, 10.4], ind: -0.8, widths: [41, 59], rows: [[leftCell, rightCell]] });
+  const d = new Date();
+  B.push(P([R(`${meta.diaDanh || '......'}, ngày ${pad(d.getDate())} tháng ${pad(d.getMonth() + 1)} năm ${d.getFullYear()}`, { i: true })], { align: 'right', before: 12, after: 0, line: 1.15, size: 14 }));
+  B.push(P([R('PHIẾU THẨM ĐỊNH SƠ BỘ', { b: true })], { align: 'center', before: 18, after: 0, line: 1.15, size: 14 }));
+  const ty = `Bản kê khai tài sản, thu nhập năm ${meta.nam || d.getFullYear()} của ${it.gioiTinh || 'ông/bà'} ${it.hoTen || '……'}`;
+  B.push(P([R(ty, { b: true })], { align: 'center', before: 0, after: 12, line: 1.15, size: 14 }));
+  B.push({ t: 'hr', w: textWidthPt(ty, 14, true) / 3 * PT2CM, size: 14, rel: 'margin' });
+  const body = (txt, o = {}) => B.push(Object.assign(P(txt), { before: 6, after: 6, line: 1.15, firstLine: 1.27 }, o));
+  const head = txt => body([R(txt, { b: true })], { keepNext: true });
+  head('1. Thông tin bản kê khai');
+  body(`- Người kê khai: ${it.hoTen || ''}${it.chucVu ? '; chức vụ: ' + it.chucVu : ''}.`);
+  body(`- Phương thức kê khai: ${it.phuongThuc || ''}${it.ngayChot ? '; ngày chốt thông tin, dữ liệu: ' + it.ngayChot : ''}.`);
+  body(`- Hình thức tiếp nhận: ${it.source === 'docx' ? 'file Word' : it.source === 'file' ? 'file dữ liệu của phần mềm Kê khai TSTN' : 'bản giấy'}${it.fileName ? ' (' + it.fileName + ')' : ''}; ngày tiếp nhận: ${fmtDate(it.ngayNhan)}.`);
+  if (it.mau) body(`- Mẫu sử dụng: ${it.mau === 'NĐ 164/2026/NĐ-CP' ? 'Phụ lục Nghị định số 164/2026/NĐ-CP' : it.mau}.`);
+  const rows = it.chon || [];
+  if (!rows.length) body([R('2. Kết quả thẩm định sơ bộ: ', { b: true }), R('Bản kê khai ghi đầy đủ các mục, các trường thông tin theo mẫu; chưa phát hiện nội dung cần chỉnh sửa, bổ sung.')]);
+  else {
+    head('2. Kết quả thẩm định sơ bộ và đề nghị chỉnh sửa, bổ sung');
+    const c = (t, o = {}) => [P(t, Object.assign({ before: 2, after: 2, line: 1.1, size: 13, align: 'left' }, o))];
+    const tr = [[c([R('STT', { b: true })], { align: 'center' }), c([R('Mục', { b: true })], { align: 'center' }), c([R('Nội dung phát hiện', { b: true })], { align: 'center' }), c([R('Đề nghị chỉnh sửa, bổ sung', { b: true })], { align: 'center' })]];
+    rows.forEach((f, i) => tr.push([c(String(i + 1), { align: 'center' }), c(f.sec.replace(/^Thể thức — /, '')), c(f.msg), c(f.fix || '')]));
+    B.push({ t: 'table', border: true, widths: [8, 22, 35, 35], rows: tr });
+  }
+  if (!blank(it.gopY)) body([R('3. Ý kiến khác: ', { b: true }), R(it.gopY)]);
+  const kl = it.ketLuan || (rows.some(f => f.level === 'loi') ? 'sua' : 'dat');
+  const han = it.hanNopLai ? ` và nộp lại trước ngày ${fmtDate(it.hanNopLai)}` : '';
+  const klTxt = kl === 'dat' ? 'Bản kê khai đạt yêu cầu về thể thức và nội dung theo mẫu; đề nghị người kê khai in, ký từng trang, ký và ghi rõ họ tên ở trang cuối, nộp đủ số bản theo quy định.'
+    : kl === 'lai' ? `Đề nghị người kê khai thực hiện kê khai lại theo đúng mẫu tại Phụ lục Nghị định số 164/2026/NĐ-CP${han}.`
+    : `Đề nghị người kê khai chỉnh sửa, bổ sung bản kê khai theo các nội dung nêu trên${han}.`;
+  body([R(`${blank(it.gopY) ? 3 : 4}. Kết luận: `, { b: true }), R(klTxt)], { after: 12 });
+  const sp = { before: 0, after: 0, line: 1 };
+  B.push({ t: 'table', border: false, widths: [50, 50], keep: true, rows: [[
+    [P([R('Nơi nhận:', { b: true, i: true })], Object.assign({ align: 'left', size: 12 }, sp)), P('- Người kê khai;', Object.assign({ align: 'left', size: 11 }, sp)), P('- Lưu: hồ sơ kiểm soát TSTN.', Object.assign({ align: 'left', size: 11 }, sp))],
+    [P([R((meta.chucDanhRaSoat || 'NGƯỜI THẨM ĐỊNH').toUpperCase(), { b: true })], Object.assign({ align: 'center', size: 14 }, sp)), P('', sp), P('', sp), P('', sp), P('', sp), P([R(meta.nguoiRaSoat || '', { b: true })], Object.assign({ align: 'center', size: 14 }, sp))]
+  ]] });
+  return B;
+}
+
 function signBlock(meta) {
   const d = new Date();
   return { t: 'table', border: false, widths: [50, 50], keep: true, rows: [[
@@ -1146,7 +1255,7 @@ function attachHr(list, size) {
 function docxTable(t, size, textWidth) {
   const widths = t.cm ? t.cm.map(c => Math.round(c * 567)) : t.widths.map(w => Math.round(textWidth * w / 100)); const tw = widths.reduce((a, b) => a + b, 0);
   const bd = t.border ? `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(s => `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="000000"/>`).join('')}</w:tblBorders>` : `<w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(s => `<w:${s} w:val="nil"/>`).join('')}</w:tblBorders>`;
-  const rows = t.rows.map((r, ri) => `<w:tr>${t.keep ? '<w:trPr><w:cantSplit/></w:trPr>' : (t.border && ri === 0 ? '<w:trPr><w:tblHeader/></w:trPr>' : '')}${r.map((cell, ci) => `<w:tc><w:tcPr><w:tcW w:w="${widths[ci]}" w:type="dxa"/></w:tcPr>${attachHr(cell.length ? cell : [P('')], size).map(b => docxPara(b, size)).join('')}</w:tc>`).join('')}</w:tr>`).join('');
+  const rows = t.rows.map((r, ri) => `<w:tr>${t.keep ? '<w:trPr><w:cantSplit/></w:trPr>' : (t.border ? `<w:trPr><w:cantSplit/>${ri === 0 ? '<w:tblHeader/>' : ''}</w:trPr>` : '')}${r.map((cell, ci) => `<w:tc><w:tcPr><w:tcW w:w="${widths[ci]}" w:type="dxa"/></w:tcPr>${attachHr(cell.length ? cell : [P('')], size).map(b => docxPara(b, size)).join('')}</w:tc>`).join('')}</w:tr>`).join('');
   return `<w:tbl><w:tblPr><w:tblW w:w="${tw}" w:type="dxa"/>${t.ind ? `<w:tblInd w:w="${Math.round(t.ind * 567)}" w:type="dxa"/>` : ''}<w:tblLayout w:type="fixed"/>${bd}<w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows}</w:tbl>`;
 }
 function buildDocx(blocks, o = {}) {
@@ -1244,7 +1353,7 @@ const API = { APP, NGUONG, NGUONG_BO_SUNG, LUONG_CO_SO_MAC_DINH, PHUONG_THUC, PH
   uid, num, fmtMoney, fmtVND, fmtDate, todayISO, addDays, clone, blank, docSo, ordName, ageAt,
   newDecl, newHoSo, newItem, emptyChild, itemValue, groupTotal, incomeTotals, netWorth, calcSalary, monthsBetween, incomePeriod,
   compareDecls, applyBienDongSuggest, rollForward, normalizeDecl, review,
-  buildDeclDoc, buildListDoc, buildTrackDoc, buildCommentDoc, buildDocx, blocksToHtml, zip, crc32, textWidthPt, setMeasure,
+  buildDeclDoc, buildReviewDoc, suggestFix, buildListDoc, buildTrackDoc, buildCommentDoc, buildDocx, blocksToHtml, zip, crc32, textWidthPt, setMeasure,
   encryptJSON, decryptJSON, isEncrypted, cryptoOK, exportStructured };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.KK = API;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -1593,16 +1702,90 @@ function parseDeclText(rawLines) {
   return { decl: d, report: rep };
 }
 
+
+// ---------------------------------------------------------------- THẨM ĐỊNH ĐÚNG MẪU (file Word nộp lên)
+const REQ = [
+  ['Tiêu đề "BẢN KÊ KHAI TÀI SẢN, THU NHẬP…"', /^ban ke khai tai san, thu nhap/],
+  ['I. THÔNG TIN CHUNG', /^i\.\s*thong tin chung/], ['I.1. Người kê khai tài sản, thu nhập', /^1\.\s*nguoi ke khai/],
+  ['I.2. Vợ hoặc chồng của người kê khai', /^2\.\s*(vo|chong)/], ['I.3. Con chưa thành niên', /^3\.\s*con chua thanh nien/],
+  ['II. THÔNG TIN MÔ TẢ VỀ TÀI SẢN', /^ii\.\s*thong tin mo ta/], ['II.1. Quyền sử dụng đất', /^1\.\s*quyen su dung/],
+  ['II.1.1. Đất ở', /^1\.1\.?\s*dat o\b/], ['II.1.2. Các loại đất khác', /^1\.2\.?\s*cac loai dat khac/],
+  ['II.2. Nhà ở, công trình xây dựng', /^2\.\s*(cac loai )?nha o/], ['II.2.1. Nhà ở', /^2\.1\.?\s*nha o/], ['II.2.2. Công trình xây dựng khác', /^2\.2\.?\s*cong trinh/],
+  ['II.3. Tài sản khác gắn liền với đất', /^3\.\s*tai san khac gan lien/], ['II.3.1. Cây lâu năm', /^3\.1\.?\s*cay lau nam/], ['II.3.2. Rừng sản xuất', /^3\.2\.?\s*rung san xuat/], ['II.3.3. Vật kiến trúc khác gắn liền với đất', /^3\.3\.?\s*vat kien truc/],
+  ['II.4. Vàng, kim cương, bạch kim, kim loại quý, đá quý', /^4\.\s*vang/],
+  ['II.5. Tiền', /^5\.\s*tien/], ['II.5.1. Tiền mặt', /^5\.1\.?\s*tien mat/], ['II.5.2. Tiền cho vay', /^5\.2\.?\s*tien cho vay/], ['II.5.3. Tiền trả trước', /^5\.3\.?\s*tien tra truoc/], ['II.5.4. Tiền gửi', /^5\.4\.?\s*tien gui/],
+  ['II.6. Cổ phiếu, trái phiếu, vốn góp, giấy tờ có giá', /^6\.\s*co phieu/], ['II.6.1. Cổ phiếu', /^6\.1\.?\s*co phieu/], ['II.6.2. Trái phiếu', /^6\.2\.?\s*trai phieu/], ['II.6.3. Vốn góp', /^6\.3\.?\s*von gop/], ['II.6.4. Các loại giấy tờ có giá khác', /^6\.4\.?\s*cac loai giay to/],
+  ['II.7. Tài sản khác', /^7\.\s*tai san khac/], ['II.7.1. Tài sản phải đăng ký sử dụng', /^7\.1\.?\s*tai san theo quy dinh/], ['II.7.2. Tài sản khác (tài sản số, đồ mỹ nghệ…)', /^7\.2\.?\s*tai san khac/],
+  ['II.8. Tài sản ở nước ngoài', /^8\.\s*tai san o nuoc ngoai/], ['II.9. Tài khoản ở nước ngoài', /^9\.\s*tai khoan o nuoc ngoai/],
+  ['II.10. Tổng thu nhập giữa hai lần kê khai', /^10\.\s*tong thu nhap/], ['II.11. Các khoản nợ từ 150 triệu đồng', /^11\.\s*cac khoan no/],
+  ['III. BIẾN ĐỘNG TÀI SẢN, THU NHẬP', /^iii\.\s*bien dong/], ['IV. NỘI DUNG THAY ĐỔI, BỔ SUNG, ĐIỀU CHỈNH', /^iv\.\s*noi dung thay doi/]
+];
+function structureCheck(rawLines, report) {
+  const lines = rawLines.map(x => norm(String(x).replace(/\n/g, ' '))).filter(x => x && !/^[-_—=.…\s|]+$/.test(x));
+  const S = lines.map(strip); const F = [];
+  const add = (level, sec, msg, fix) => F.push({ level, sec: 'Thể thức — ' + sec, msg, fix, kind: 'mau' });
+  const mau = report && report.mau;
+  if (mau === 'NĐ 130/2020/NĐ-CP') {
+    add('loi', 'Mẫu bản kê khai', 'Bản kê khai đang dùng mẫu cũ theo Nghị định 130/2020/NĐ-CP (ngưỡng 50 triệu đồng, thiếu nhiều trường bắt buộc).', 'Kê khai lại theo mẫu tại Phụ lục Nghị định 164/2026/NĐ-CP (có thể dùng ứng dụng Kê khai TSTN để chuyển dữ liệu sang mẫu mới).');
+    return F;
+  }
+  // Đủ mục, đúng thứ tự
+  let last = -1; const missing = [], disorder = [];
+  REQ.forEach(([name, re]) => {
+    let idx = -1; for (let i = last + 1; i < S.length; i++) if (re.test(S[i])) { idx = i; break; }
+    if (idx >= 0) { last = idx; return; }
+    const any = S.findIndex(x => re.test(x));
+    if (any >= 0) disorder.push(name); else missing.push(name);
+  });
+  missing.forEach(n => add('loi', n, `Thiếu mục "${n}".`, `Bổ sung mục "${n}" đúng vị trí như mẫu; nếu không có tài sản, thu nhập thì ghi "Không có" (mẫu không cho tự ý cắt bỏ mục).`));
+  if (disorder.length) add('loi', 'Thứ tự các mục', `Thứ tự mục không đúng mẫu tại: ${disorder.join('; ')}.`, 'Sắp xếp lại các mục theo đúng thứ tự của mẫu (không được thay đổi thứ tự các mục, các trường thông tin).');
+  // Tiêu đề, phương thức, ngày
+  const ti = S.findIndex(x => /^ban ke khai tai san, thu nhap/.test(x));
+  if (ti >= 0) {
+    const zone = S.slice(ti, ti + 3).join(' ');
+    if (!/lan dau|hang nam|bo sung|phuc vu cong tac can bo/.test(zone)) add('loi', 'Tiêu đề', 'Tiêu đề chưa ghi rõ phương thức kê khai.', 'Ghi phương thức vào tiêu đề: "BẢN KÊ KHAI TÀI SẢN, THU NHẬP HẰNG NĂM" (hoặc LẦN ĐẦU, BỔ SUNG, PHỤC VỤ CÔNG TÁC CÁN BỘ) — chú thích 1.');
+    else if ((zone.match(/lan dau|hang nam|bo sung|phuc vu cong tac can bo/g) || []).length > 1) add('loi', 'Tiêu đề', 'Tiêu đề ghi nhiều phương thức kê khai cùng lúc.', 'Chỉ giữ đúng một phương thức kê khai trong tiêu đề.');
+    const dl = lines.slice(ti + 1, ti + 4).find(x => /ngay/.test(strip(x)));
+    if (!dl) add('loi', 'Dòng ngày dưới tiêu đề', 'Thiếu dòng "(Ngày … tháng … năm …)" dưới tiêu đề.', 'Bổ sung dòng "(Ngày … tháng … năm …)" ghi ngày chốt thông tin, dữ liệu về tài sản, thu nhập (chú thích 2).');
+    else if (!/\d/.test(dl)) add('loi', 'Dòng ngày dưới tiêu đề', 'Chưa ghi ngày chốt thông tin, dữ liệu ở dòng "(Ngày … tháng … năm …)".', 'Ghi đầy đủ ngày, tháng, năm chốt thông tin, dữ liệu về tài sản, thu nhập (chú thích 2).');
+  }
+  // Trường bỏ trống
+  const blanks = [], blanksOpt = [];
+  const iI = S.findIndex(x => /^i\.\s*thong tin chung/.test(x)), iIII = S.findIndex(x => /^iii\.\s*bien dong/.test(x));
+  lines.forEach((l, i) => {
+    if (i <= iI || (iIII > 0 && i >= iIII)) return;
+    const segs = l.split(/\s{2,}|\t| \| /).filter(Boolean);
+    segs.forEach(seg => {
+      const m = seg.match(/^([-+]?\s*[^:]{2,90}?)\s*(\(\d+\))?:\s*([.…\s]*)$/);
+      if (!m) return;
+      const label = m[1].replace(/^[-+]\s*/, '').trim(); const sl = strip(label);
+      if (/^\d+(\.\d+)*\.?\s/.test(label) || /^(dat o|cac loai dat|nha o|cong trinh|cay lau nam|rung san xuat|vat kien truc|co phieu|trai phieu|von gop|tai san khac)/.test(sl)) return; // đề mục
+      if (/thong tin khac/.test(sl) && i + 1 < S.length && /^\+/.test(S[i + 1])) return; // "Thông tin khác (nếu có):" là đề mục của các dòng "+"
+      (/neu co|ghi chu|so dien thoai/.test(sl) ? blanksOpt : blanks).push(label);
+    });
+  });
+  const uniq = a => [...new Set(a)];
+  if (blanks.length) add('loi', 'Trường thông tin bỏ trống', `Có ${blanks.length} trường bắt buộc để trống: ${uniq(blanks).slice(0, 12).join('; ')}${uniq(blanks).length > 12 ? '…' : ''}.`, 'Ghi đầy đủ thông tin vào các trường còn trống; trường nào không có thì ghi "Không có" — mẫu không cho bỏ trống (chú thích 1).');
+  if (blanksOpt.length) add('goi_y', 'Trường "nếu có"/ghi chú để trống', `Có ${blanksOpt.length} trường không bắt buộc để trống: ${uniq(blanksOpt).slice(0, 8).join('; ')}.`, 'Nên ghi "Không có" để tránh bị hiểu là bỏ sót.');
+  // Phần ký
+  const sig = lines.slice(-30).find(x => /nguoi ke khai tai san/.test(strip(x)));
+  if (!sig && !S.some(x => /nguoi ke khai tai san/.test(x))) add('loi', 'Phần ký', 'Thiếu phần "NGƯỜI KÊ KHAI TÀI SẢN (Ký, ghi rõ họ tên)".', 'Bổ sung khối ký của người kê khai và người nhận bản kê khai như mẫu.');
+  const dsig = lines.slice(-30).filter(x => /ngay/.test(strip(x)) && /thang/.test(strip(x)));
+  if (dsig.length && !dsig.some(x => { const parts = x.split(' | '); return /\d/.test(parts[parts.length - 1]); })) add('canh_bao', 'Phần ký', 'Chưa ghi ngày hoàn thành kê khai ở phần ký của người kê khai.', 'Ghi ngày hoàn thành kê khai và nộp cho cơ quan quản lý (chú thích 41).');
+  if (!S.some(x => /nguoi nhan ban ke khai/.test(x))) add('canh_bao', 'Phần ký', 'Thiếu khối "NGƯỜI NHẬN BẢN KÊ KHAI".', 'Bổ sung khối ký của người nhận bản kê khai như mẫu (chú thích 42).');
+  return F;
+}
+
 async function importFile(file) {
   const name = (file.name || '').toLowerCase();
-  if (name.endsWith('.docx')) return parseDeclText(await docxToLines(await file.arrayBuffer()));
+  if (name.endsWith('.docx')) { const lines = await docxToLines(await file.arrayBuffer()); return Object.assign(parseDeclText(lines), { lines }); }
   if (name.endsWith('.txt')) return parseDeclText((await file.text()).split(/\r?\n/));
   if (name.endsWith('.doc')) throw new Error('File .doc (Word 97–2003) chưa đọc được. Mở file bằng Word → Lưu thành (Save As) → chọn "Word Document (*.docx)" rồi nhập lại; hoặc dùng "Dán nội dung".');
   if (name.endsWith('.pdf')) throw new Error('Chưa đọc trực tiếp được PDF. Mở PDF, bấm Ctrl+A rồi Ctrl+C, sau đó chọn "Dán nội dung" và Ctrl+V. Bản scan (ảnh chụp) thì cần nhập tay.');
   throw new Error('Định dạng chưa hỗ trợ. Dùng file Word .docx hoặc "Dán nội dung".');
 }
 
-const API = { docxToLines, docxXmlToLines, parseDeclText, importFile, parseMoney, parseDate, splitLabels, PERSON_LABELS, ASSET_LABELS };
+const API = { structureCheck, docxToLines, docxXmlToLines, parseDeclText, importFile, parseMoney, parseDate, splitLabels, PERSON_LABELS, ASSET_LABELS };
 if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.KKImport = API;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1653,11 +1836,11 @@ const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidd
 
 // ------------------------------------------------------------------ STATE
 let db = null, sessionPw = null, dirty = false, saveTimer = null, fileHandles = {};
-let ui = { mode: 'kekhai', page: 'ky', openItems: {} };
+let ui = { mode: 'kekhai', page: 'ky', openItems: {}, dmView: null };
 const dmPw = {}; // mật khẩu file của đầu mối: chỉ giữ trong bộ nhớ phiên, không lưu xuống máy
 
 function defaultDB() {
-  return { v: 1, createdAt: new Date().toISOString(), settings: { lcs: K.clone(K.LUONG_CO_SO_MAC_DINH), hanNop: '', fontSize: 14, soBan: 2, keKhaiDuoiNguong: false, lock: false, lastBackup: '' }, hoso: [], cur: { hosoId: null, declId: null }, dauMoi: { meta: { donVi: '', nam: new Date().getFullYear(), nguoiKy: '', chucDanhKy: 'Thủ trưởng đơn vị', diaDanh: '', soBo: 3 }, items: [] } };
+  return { v: 1, createdAt: new Date().toISOString(), settings: { lcs: K.clone(K.LUONG_CO_SO_MAC_DINH), hanNop: '', fontSize: 14, soBan: 2, keKhaiDuoiNguong: false, lock: false, lastBackup: '' }, hoso: [], cur: { hosoId: null, declId: null }, dauMoi: { meta: { donVi: '', nam: new Date().getFullYear(), nguoiKy: '', chucDanhKy: 'Thủ trưởng đơn vị', diaDanh: '', soBo: 3, nguoiRaSoat: '', chucDanhRaSoat: 'Người thẩm định', hanNopLai: '' }, items: [] } };
 }
 function loadDB() {
   try {
@@ -2330,114 +2513,226 @@ function aboutModal() {
   <p class="small mut">Liên hệ góp ý, báo lỗi: ${esc(K.APP.phone)} · <a href="mailto:${esc(K.APP.email)}">${esc(K.APP.email)}</a></p>`, [{ label: 'Đóng', cls: 'pri' }]);
 }
 
-// ------------------------------------------------------------------ ĐẦU MỐI
+// ------------------------------------------------------------------ ĐẦU MỐI: TIẾP NHẬN, THẨM ĐỊNH SƠ BỘ, ĐỀ NGHỊ CHỈNH SỬA
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const hkey = str => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return 'k' + (h >>> 0).toString(36); };
 function dmItem(id) { return db.dauMoi.items.find(x => x.id === id); }
 function dmDecl(it) { if (!it.hoso) return null; return it.hoso.decls.find(x => x.id === it.declId) || it.hoso.decls.slice(-1)[0]; }
 function dmPrev(it) { const d = dmDecl(it); return d ? prevOf(it.hoso, d) : null; }
 function dmRefresh(it) {
   const d = dmDecl(it); if (!d) return;
   Object.assign(it, { hoTen: d.nguoi.hoTen, chucVu: d.nguoi.chucVu, phuongThuc: K.PHUONG_THUC_TEN[d.phuongThuc], ngayChot: K.fmtDate(d.ngayChot) });
-  it.findings = K.review(d, dmPrev(it), { lcs: db.settings.lcs });
+  const content = K.review(d, dmPrev(it), { lcs: db.settings.lcs }).map(f => Object.assign(f, { kind: 'noidung' }));
+  it.findings = [...(it.structure || []), ...content].map(f => Object.assign(f, { key: hkey(f.sec + '|' + f.msg) }));
+  it.sel = it.sel || {}; it.fixEdit = it.fixEdit || {}; it.manual = it.manual || [];
+  it.findings.forEach(f => { if (!(f.key in it.sel)) it.sel[f.key] = f.level !== 'goi_y'; });
+}
+function dmChosen(it) {
+  const pick = (it.findings || []).filter(f => it.sel[f.key]).map(f => ({ level: f.level, sec: f.sec, msg: f.msg, fix: it.fixEdit[f.key] ?? f.fix }));
+  return [...pick, ...(it.manual || []).filter(x => x.msg || x.fix).map(x => ({ level: 'loi', sec: x.sec || 'Khác', msg: x.msg, fix: x.fix }))];
 }
 async function dmAddFromData(data, fileName) {
   const hoso = data.type === 'hoso' ? data.hoso : data;
   hoso.decls = hoso.decls.map(K.normalizeDecl);
   const declId = data.sentDeclId || hoso.decls.slice(-1)[0].id;
   let it = db.dauMoi.items.find(x => x.hoso && x.hoso.id === hoso.id && x.declId === declId);
-  if (it) { if (!await confirmBox('Đã có hồ sơ này', `Đã tiếp nhận hồ sơ của ${esc(hoso.label)} trước đó. Cập nhật bằng file mới?`, 'Cập nhật')) return; it.hoso = hoso; }
-  else { it = { id: K.uid(), source: 'file', fileName, hoso, declId, ngayNhan: K.todayISO(), soBo: db.dauMoi.meta.soBo, status: 'Đã nhận', gopY: '', ghiChu: '' }; db.dauMoi.items.push(it); }
-  dmRefresh(it); await persist(); renderDauMoi(); toast('Đã tiếp nhận: ' + (it.hoTen || fileName)); return it;
+  if (it) { if (!await confirmBox('Đã có hồ sơ này', `Đã tiếp nhận hồ sơ của ${esc(hoso.label)} trước đó. Cập nhật bằng file mới?`, 'Cập nhật')) return; it.hoso = hoso; it.findings = null; }
+  else { it = { id: K.uid(), source: 'file', fileName, hoso, declId, ngayNhan: K.todayISO(), soBo: db.dauMoi.meta.soBo, status: 'Đã nhận', gopY: '', ghiChu: '', mau: 'NĐ 164/2026/NĐ-CP', structure: [] }; db.dauMoi.items.push(it); }
+  dmRefresh(it); return it;
+}
+async function dmAddDocx(file) {
+  const res = await window.KKImport.importFile(file);
+  const decl = K.normalizeDecl(res.decl);
+  const structure = window.KKImport.structureCheck(res.lines, res.report);
+  const exist = db.dauMoi.items.find(x => x.hoso && decl.nguoi.soDinhDanh && dmDecl(x) && dmDecl(x).nguoi.soDinhDanh === decl.nguoi.soDinhDanh && dmDecl(x).nam === decl.nam);
+  let it = exist;
+  if (exist && await confirmBox('Đã tiếp nhận bản của người này', `Đã có bản kê khai năm ${decl.nam} của ${esc(exist.hoTen)}. Thay bằng file mới <b>${esc(file.name)}</b> (bản đã chỉnh sửa)?`, 'Thay bằng bản mới')) {
+    const prev = dmPrev(exist); exist.hoso.decls = prev ? [prev, decl] : [decl]; if (prev) { decl.prevId = prev.id; dmMatchIds(decl, prev); }
+    Object.assign(exist, { fileName: file.name, declId: decl.id, structure, mau: res.report.mau, findings: null, sel: {}, fixEdit: {}, lanNop: (exist.lanNop || 1) + 1, status: 'Đã nhận' });
+  } else {
+    const hoso = K.newHoSo(decl.nguoi.hoTen || file.name); hoso.decls.push(decl);
+    it = { id: K.uid(), source: 'docx', fileName: file.name, hoso, declId: decl.id, ngayNhan: K.todayISO(), soBo: db.dauMoi.meta.soBo, status: 'Đã nhận', gopY: '', ghiChu: '', structure, mau: res.report.mau, canhBaoNhap: res.report.canhBao, lanNop: 1 };
+    db.dauMoi.items.push(it);
+  }
+  dmRefresh(it); return it;
+}
+// Ghép tài sản của kỳ này với kỳ trước (hai file độc lập) để so biến động
+function dmMatchIds(cur, prev) {
+  const keyOf = (gk, x) => [gk, x.diaChi, x.ten, x.soTK, x.soDangKy, x.loaiDat, x.gcn].map(v => String(v || '').toLowerCase().replace(/\s+/g, ' ').trim()).join('|');
+  K.GROUPS.forEach(g => {
+    const pm = {}; (prev.ts[g.key] || []).forEach(x => { const k = keyOf(g.key, x); (pm[k] = pm[k] || []).push(x); });
+    (cur.ts[g.key] || []).forEach(x => { const k = keyOf(g.key, x); const c = pm[k]; if (c && c.length) x.id = c.shift().id; });
+  });
+}
+async function dmIngest(files) {
+  const bad = []; let n = 0, last = null;
+  for (const f of files) {
+    const nm = f.name.toLowerCase();
+    try {
+      if (nm.endsWith('.docx')) { last = await dmAddDocx(f); n++; }
+      else if (nm.endsWith('.tstn') || nm.endsWith('.json')) {
+        const r = await openTstnText(await readText(f), f.name); if (!r) continue;
+        if (r.data.type === 'backup') { bad.push(f.name + ' (file sao lưu — mở bằng nút Mở)'); continue; }
+        const it = await dmAddFromData(r.data, f.name); if (it) { dmPw[it.id] = r.pw; last = it; n++; }
+      } else bad.push(f.name + (nm.endsWith('.doc') ? ' (Word 97–2003: đề nghị người nộp lưu lại thành .docx)' : nm.endsWith('.pdf') ? ' (PDF: đề nghị nộp file Word .docx)' : ' (định dạng không hỗ trợ)'));
+    } catch (e) { bad.push(f.name + ' (' + e.message + ')'); }
+  }
+  await persist(); ui.dmView = null; renderDauMoiSide(); renderDauMoi();
+  if (bad.length) modal('Một số file chưa tiếp nhận được', `<ul class="small">${bad.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`, [{ label: 'Đóng', cls: 'pri' }], 'sm');
+  else if (n) toast(`Đã tiếp nhận ${n} hồ sơ — bấm "Thẩm định" để xem kết quả`);
+  return last;
 }
 function renderDauMoiSide() {
   const items = db.dauMoi.items; const st = {}; items.forEach(x => st[x.status] = (st[x.status] || 0) + 1);
   const n = items.length, ok = (st['Đạt'] || 0) + (st['Đã nộp cấp trên'] || 0);
-  $('#side').innerHTML = `<div class="dossier"><label>Chế độ đầu mối đơn vị</label><div style="color:#fff;font-weight:600;font-size:14.5px">${esc(db.dauMoi.meta.donVi || 'Chưa đặt tên đơn vị')}</div>
+  $('#side').innerHTML = `<div class="dossier"><label>Chế độ đầu mối đơn vị</label><div style="color:#fff;font-weight:600;font-size:14.5px;white-space:pre-line">${esc((db.dauMoi.meta.donVi || 'Chưa đặt tên đơn vị').split('\n').slice(-1)[0])}</div>
     <div class="prog"><div class="bar"><i style="width:${n ? Math.round(ok / n * 100) : 0}%"></i></div><div class="lbl"><span>Đạt / tổng số hồ sơ</span><b>${ok}/${n}</b></div></div></div>
-   <h4>Tình hình tiếp nhận</h4><ul class="steps">${[['Đã nhận', ''], ['Cần bổ sung', 'err'], ['Đạt', 'done'], ['Đã nộp cấp trên', 'done']].map(([s2, c]) => `<li><a><span class="dot ${st[s2] ? c : ''}">${st[s2] || 0}</span><span class="t">${s2}</span></a></li>`).join('')}</ul>
-   <h4>Chuyển chế độ</h4><ul class="steps"><li><a data-act="mode" data-mode="kekhai"><span class="dot">${ic('back')}</span><span class="t">Về chế độ người kê khai</span></a></li></ul>
-   <p class="small" style="color:var(--ink-mute);margin:14px 8px 0;line-height:1.5">Công văn hướng dẫn yêu cầu mỗi đơn vị giao một người đầu mối rà soát; theo chú thích 42 của mẫu, người nhận phải kiểm tra tính đầy đủ của bản kê khai.</p>`;
+   <h4>Tình hình tiếp nhận</h4><ul class="steps">${[['Đã nhận', ''], ['Cần bổ sung', 'err'], ['Đạt', 'done'], ['Đã nộp cấp trên', 'done']].map(([s2, c]) => `<li><a data-act="dmBack"><span class="dot ${st[s2] ? c : ''}">${st[s2] || 0}</span><span class="t">${s2}</span></a></li>`).join('')}</ul>
+   ${ui.dmView ? `<h4>Hồ sơ đang thẩm định</h4><ul class="steps"><li><a data-act="dmBack"><span class="dot">${ic('back')}</span><span class="t">Về danh sách tiếp nhận</span></a></li></ul>` : ''}
+   <h4>Chuyển chế độ</h4><ul class="steps"><li><a data-act="mode" data-mode="kekhai"><span class="dot">${ic('user')}</span><span class="t">Về chế độ người kê khai</span></a></li></ul>
+   <p class="small" style="color:var(--ink-mute);margin:14px 8px 0;line-height:1.5">Kéo thả file Word (.docx) hoặc .tstn cán bộ nộp vào trang danh sách để tiếp nhận. Theo chú thích 42 của mẫu, người nhận phải kiểm tra tính đầy đủ của bản kê khai.</p>`;
 }
+const SRC = { docx: ic('word') + ' Word', file: ic('lock') + ' File .tstn', giay: ic('file') + ' Bản giấy' };
 function renderDauMoi() {
+  if (ui.dmView && dmItem(ui.dmView)) return renderDmDetail(dmItem(ui.dmView));
   const m = db.dauMoi.meta; const items = db.dauMoi.items;
   items.forEach(it => { if (it.hoso && !it.findings) dmRefresh(it); });
-  $('#main').innerHTML = pageHead('daumoi', `<h1>Tiếp nhận và rà soát bản kê khai</h1><p class="sub">Dữ liệu người kê khai lưu trên máy của đầu mối; xoá sau khi hoàn thành bàn giao nếu không cần lưu.</p>
-  <div class="card"><h3 style="margin-bottom:10px">Thông tin đơn vị</h3><div class="grid g3">
-    <label class="f">Tên đơn vị<input type="text" data-dm="meta.donVi" value="${esc(m.donVi)}"></label>
+  $('#main').innerHTML = pageHead('daumoi', `<h1>Tiếp nhận và thẩm định sơ bộ bản kê khai</h1><p class="sub">Nhận file Word (.docx) hoặc file .tstn cán bộ nộp, thẩm định đúng mẫu và nội dung, lập phiếu đề nghị chỉnh sửa. Dữ liệu chỉ lưu trên máy của đầu mối.</p>
+  <div class="card" id="dropZone" style="border:2px dashed var(--line);background:#FAFBFC;text-align:center;padding:22px">
+    <div style="color:var(--ink-3);margin-bottom:6px">${ic('upload').replace('class="i ', 'class="i " style="width:28px;height:28px" ')}</div>
+    <b>Kéo thả các file bản kê khai vào đây</b><div class="small mut" style="margin:4px 0 12px">Nhận file Word (.docx) và file dữ liệu (.tstn) — chọn được nhiều file cùng lúc</div>
+    <div class="row" style="justify-content:center"><button class="btn pri" data-act="dmImport">${ic('upload')}Chọn file nộp</button><button class="btn" data-act="dmPaper">${ic('file')}Ghi nhận bản giấy</button></div></div>
+  <div class="card"><div class="card-h"><h3>Hồ sơ đã tiếp nhận (${items.length})</h3><div class="row">
+    <button class="btn sm" data-act="dmList">${ic('download')}Danh sách</button><button class="btn sm" data-act="dmTrack">${ic('download')}Sổ theo dõi</button></div></div>
+  ${items.length ? `<table class="t"><tr><th>#</th><th>Họ và tên / Chức vụ</th><th>Nguồn</th><th>Ngày nhận</th><th>Thẩm định</th><th>Trạng thái</th><th></th></tr>
+  ${items.map((it, i) => { const f = it.findings || []; const em = f.filter(x => x.level === 'loi' && x.kind === 'mau').length, en = f.filter(x => x.level === 'loi' && x.kind !== 'mau').length, w = f.filter(x => x.level === 'canh_bao').length; return `<tr>
+    <td>${i + 1}</td><td><b>${esc(it.hoTen || '(chưa đọc được tên)')}</b><div class="small mut">${esc(it.chucVu || '')}${it.phuongThuc ? ' · ' + esc(it.phuongThuc) : ''}${it.lanNop > 1 ? ' · nộp lần ' + it.lanNop : ''}</div></td>
+    <td class="small" style="white-space:nowrap">${SRC[it.source] || ''}</td><td><input type="date" data-dm="items.#${it.id}.ngayNhan" value="${esc(it.ngayNhan)}" style="width:140px"></td>
+    <td style="white-space:nowrap">${it.source !== 'giay' ? `<span class="badge ${em ? 'b-err' : 'b-ok'}" title="Lỗi thể thức theo mẫu">Mẫu ${em}</span> <span class="badge ${en ? 'b-err' : 'b-ok'}" title="Lỗi nội dung">Nội dung ${en}</span> <span class="badge b-warn" title="Cảnh báo">${w}</span>` : '<span class="small mut">thủ công</span>'}</td>
+    <td><select data-dm="items.#${it.id}.status">${['Đã nhận', 'Cần bổ sung', 'Đạt', 'Đã nộp cấp trên'].map(s2 => `<option ${s2 === it.status ? 'selected' : ''}>${s2}</option>`).join('')}</select></td>
+    <td style="white-space:nowrap"><button class="btn sm ink" data-act="dmOpen" data-id="${it.id}">Thẩm định</button> <button class="btn sm ghost dang icon" data-act="dmDel" data-id="${it.id}" title="Xoá">${ic('trash')}</button></td></tr>`; }).join('')}</table>` : '<div class="empty">Chưa tiếp nhận hồ sơ nào.</div>'}</div>
+  <div class="card"><h3 style="margin-bottom:10px">Thông tin đơn vị và người thẩm định</h3><div class="grid g3">
+    <label class="f full">Tên cơ quan, đơn vị (mỗi cấp một dòng; dòng cuối in đậm)<textarea data-dm="meta.donVi" rows="2" placeholder="SỞ GIÁO DỤC VÀ ĐÀO TẠO LÂM ĐỒNG&#10;TRƯỜNG THPT NGÔ QUYỀN">${esc(m.donVi)}</textarea></label>
     <label class="f">Năm kê khai<input type="text" data-dm="meta.nam" value="${esc(m.nam)}"></label>
     <label class="f">Số bộ mỗi người phải nộp<input type="number" data-dm="meta.soBo" value="${esc(m.soBo)}"></label>
-    <label class="f">Người ký văn bản tổng hợp<input type="text" data-dm="meta.nguoiKy" value="${esc(m.nguoiKy)}"></label>
-    <label class="f">Chức danh người ký<input type="text" data-dm="meta.chucDanhKy" value="${esc(m.chucDanhKy)}"></label>
-    <label class="f">Địa danh<input type="text" data-dm="meta.diaDanh" value="${esc(m.diaDanh)}"></label></div></div>
-  <div class="card"><div class="card-h"><h3>Hồ sơ đã tiếp nhận (${items.length})</h3><div class="row">
-    <button class="btn pri sm" data-act="dmImport">${ic('upload')}Nhận file .tstn</button><button class="btn sm" data-act="dmPaper">${ic('file')}Ghi nhận bản giấy</button>
-    <button class="btn sm" data-act="dmList">${ic('download')}Danh sách</button><button class="btn sm" data-act="dmTrack">${ic('download')}Sổ theo dõi</button></div></div>
-  ${items.length ? `<table class="t"><tr><th>#</th><th>Họ và tên / Chức vụ</th><th>Phương thức</th><th>Nguồn</th><th>Ngày nhận</th><th>Rà soát</th><th>Trạng thái</th><th></th></tr>
-  ${items.map((it, i) => { const f = it.findings || []; const e = f.filter(x => x.level === 'loi').length, w = f.filter(x => x.level === 'canh_bao').length; return `<tr>
-    <td>${i + 1}</td><td><b>${esc(it.hoTen || '')}</b><div class="small mut">${esc(it.chucVu || '')}</div></td><td class="small">${esc(it.phuongThuc || '')}</td>
-    <td class="small">${it.source === 'file' ? '📄 File' : '📝 Bản giấy'}</td><td><input type="date" data-dm="items.#${it.id}.ngayNhan" value="${esc(it.ngayNhan)}" style="width:140px"></td>
-    <td>${it.source === 'file' ? `<span class="badge ${e ? 'b-err' : 'b-ok'}">${e} lỗi</span> <span class="badge b-warn">${w}</span>` : '<span class="small mut">thủ công</span>'}</td>
-    <td><select data-dm="items.#${it.id}.status">${['Đã nhận', 'Cần bổ sung', 'Đạt', 'Đã nộp cấp trên'].map(s => `<option ${s === it.status ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
-    <td style="white-space:nowrap"><button class="btn sm" data-act="dmOpen" data-id="${it.id}">Rà soát / Góp ý</button> <button class="btn sm ghost dang icon" data-act="dmDel" data-id="${it.id}" title="Xoá">${ic('trash')}</button></td></tr>`; }).join('')}</table>` : '<div class="empty">Chưa tiếp nhận hồ sơ nào. Cán bộ dùng nút "Lưu file gửi đầu mối" ở trang Rà soát & Xuất để tạo file .tstn gửi cho bạn.</div>'}</div>
+    <label class="f">Địa danh<input type="text" data-dm="meta.diaDanh" value="${esc(m.diaDanh)}" placeholder="VD: Phú Quý"></label>
+    <label class="f">Người thẩm định (ký phiếu)<input type="text" data-dm="meta.nguoiRaSoat" value="${esc(m.nguoiRaSoat || '')}"></label>
+    <label class="f">Chức danh ghi trên phiếu<input type="text" data-dm="meta.chucDanhRaSoat" value="${esc(m.chucDanhRaSoat || 'Người thẩm định')}"></label>
+    <label class="f">Hạn nộp lại mặc định<input type="date" data-dm="meta.hanNopLai" value="${esc(m.hanNopLai || '')}"></label>
+    <label class="f">Người ký danh sách, sổ theo dõi<input type="text" data-dm="meta.nguoiKy" value="${esc(m.nguoiKy)}"></label>
+    <label class="f">Chức danh người ký danh sách<input type="text" data-dm="meta.chucDanhKy" value="${esc(m.chucDanhKy)}"></label></div></div>
+  <div class="foot">${esc(K.APP.copyright)}</div>`);
+}
+function renderDmDetail(it) {
+  if (it.hoso) dmRefresh(it);
+  const f = it.findings || []; const d = dmDecl(it); const prev = dmPrev(it);
+  const lb = { loi: 'Lỗi', canh_bao: 'Cảnh báo', goi_y: 'Gợi ý' }, order = { loi: 0, canh_bao: 1, goi_y: 2 };
+  const em = f.filter(x => x.level === 'loi' && x.kind === 'mau').length, en = f.filter(x => x.level === 'loi' && x.kind !== 'mau').length, w = f.filter(x => x.level === 'canh_bao').length;
+  const chosen = dmChosen(it).length;
+  const rows = (kind) => f.filter(x => (x.kind === 'mau') === (kind === 'mau')).sort((a, b2) => order[a.level] - order[b2.level]).map(x => `<tr>
+    <td style="width:34px"><input type="checkbox" data-dm="items.#${it.id}.sel.${x.key}" data-dmre ${it.sel[x.key] ? 'checked' : ''} title="Đưa vào phiếu"></td>
+    <td style="width:80px"><span class="lv ${x.level}" style="display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:2px 8px">${lb[x.level]}</span></td>
+    <td style="width:22%"><b class="small">${esc(x.sec.replace(/^Thể thức — /, ''))}</b><div class="small" style="margin-top:2px">${esc(x.msg)}</div></td>
+    <td><textarea data-dm="items.#${it.id}.fixEdit.${x.key}" rows="2" style="font-size:13px;min-height:52px">${esc(it.fixEdit[x.key] ?? x.fix ?? '')}</textarea></td></tr>`).join('') || `<tr><td colspan="4" class="mut small">Không phát hiện vấn đề.</td></tr>`;
+  const man = (it.manual || []).map(x => `<tr><td></td><td><span class="lv loi" style="display:inline-block;font-size:11.5px;font-weight:600;border-radius:5px;padding:2px 8px">Bổ sung</span></td>
+    <td><input type="text" data-dm="items.#${it.id}.manual.#${x.id}.sec" value="${esc(x.sec)}" placeholder="Mục (VD: II.1.1)" style="margin-bottom:4px"><textarea data-dm="items.#${it.id}.manual.#${x.id}.msg" rows="2" placeholder="Nội dung phát hiện">${esc(x.msg)}</textarea></td>
+    <td><textarea data-dm="items.#${it.id}.manual.#${x.id}.fix" rows="3" placeholder="Đề nghị chỉnh sửa, bổ sung">${esc(x.fix)}</textarea><button class="btn sm ghost dang" data-act="dmManDel" data-id="${it.id}" data-mid="${x.id}">${ic('trash')}Xoá dòng</button></td></tr>`).join('');
+  const blocks = d ? K.buildDeclDoc(d, prev, { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong }) : null;
+  $('#main').innerHTML = pageHead('daumoi', `<h1>Thẩm định sơ bộ: ${esc(it.hoTen || '')}</h1><p class="sub">${esc([it.chucVu, it.phuongThuc, it.fileName ? 'file ' + it.fileName : '', it.lanNop > 1 ? 'nộp lần ' + it.lanNop : ''].filter(Boolean).join(' · '))}</p>
+  <div class="kpis"><div class="kpi ${em ? 'err' : 'okk'}"><span>Lỗi thể thức theo mẫu</span><b>${em}</b></div><div class="kpi ${en ? 'err' : 'okk'}"><span>Lỗi nội dung</span><b>${en}</b></div><div class="kpi warn"><span>Cảnh báo</span><b>${w}</b></div><div class="kpi info"><span>Đưa vào phiếu</span><b>${chosen}</b></div></div>
+  ${(it.canhBaoNhap || []).length ? `<div class="note warn"><b>Lưu ý khi đọc file:</b><br>${it.canhBaoNhap.map(x => '• ' + esc(x)).join('<br>')}</div>` : ''}
+  <div class="card"><div class="card-h"><h3>1. Thể thức theo mẫu Phụ lục NĐ 164/2026/NĐ-CP</h3><span class="small mut">Đánh dấu ô vuông để đưa vào phiếu; sửa câu chữ đề nghị nếu cần</span></div>
+    <table class="t">${rows('mau')}</table></div>
+  <div class="card"><div class="card-h"><h3>2. Nội dung kê khai</h3><div class="row"><button class="btn sm" data-act="dmSelAll" data-id="${it.id}">${ic('check')}Chọn mọi lỗi và cảnh báo</button></div></div>
+    ${!prev && d && d.phuongThuc !== 'lan_dau' ? `<div class="note info row" style="justify-content:space-between;align-items:center"><span>Chưa có bản kê khai năm trước để đối chiếu Mục III (biến động) và kỳ thu nhập.</span><button class="btn sm" data-act="dmPrevAttach" data-id="${it.id}">${ic('word')}Đính kèm bản năm trước</button></div>` : prev ? `<div class="note ok">Đang đối chiếu với bản kê khai ${esc(K.PHUONG_THUC_TEN[prev.phuongThuc])} ${prev.nam}${prev.ngayKeKhai ? ' (' + K.fmtDate(prev.ngayKeKhai) + ')' : ''}.</div>` : ''}
+    <table class="t">${rows('noidung')}${man}</table>
+    <button class="btn sm" data-act="dmManAdd" data-id="${it.id}" style="margin-top:10px">${ic('plus')}Thêm đề nghị khác</button></div>
+  <div class="card"><h3 style="margin-bottom:10px">3. Kết luận</h3><div class="grid g3">
+    <label class="f">Kết luận<select data-dm="items.#${it.id}.ketLuan" data-dmre>${[['', 'Tự động theo kết quả'], ['dat', 'Đạt yêu cầu'], ['sua', 'Đề nghị chỉnh sửa, bổ sung'], ['lai', 'Đề nghị kê khai lại theo mẫu NĐ 164']].map(([v, t]) => `<option value="${v}" ${(it.ketLuan || '') === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+    <label class="f">Hạn nộp lại<input type="date" data-dm="items.#${it.id}.hanNopLai" value="${esc(it.hanNopLai || db.dauMoi.meta.hanNopLai || '')}"></label>
+    <label class="f">Xưng hô trên phiếu<select data-dm="items.#${it.id}.gioiTinh">${['ông/bà', 'ông', 'bà'].map(x => `<option ${(it.gioiTinh || 'ông/bà') === x ? 'selected' : ''}>${x}</option>`).join('')}</select></label>
+    <label class="f full">Ý kiến khác (nếu có)<textarea data-dm="items.#${it.id}.gopY" rows="2">${esc(it.gopY || '')}</textarea></label>
+    <label class="f full">Ghi chú in trong danh sách<input type="text" data-dm="items.#${it.id}.ghiChu" value="${esc(it.ghiChu || '')}"></label></div></div>
+  <div class="card"><h3 style="margin-bottom:10px">4. Xuất kết quả</h3><div class="row">
+    <button class="btn pri" data-act="dmPhieu" data-id="${it.id}">${ic('download')}Phiếu thẩm định và đề nghị chỉnh sửa (Word)</button>
+    ${d ? `<button class="btn" data-act="dmDeclDocx" data-id="${it.id}">${ic('download')}Bản kê khai chuẩn hoá theo mẫu (Word)</button>
+    <button class="btn" data-act="dmReturn" data-id="${it.id}">${ic('lock')}File dữ liệu trả lại (.tstn)</button>` : ''}
+    <button class="btn ghost" data-act="dmBack">${ic('back')}Về danh sách</button></div>
+    <p class="small mut" style="margin:10px 0 0">"Bản kê khai chuẩn hoá" do ứng dụng dựng lại từ nội dung đọc được, đúng bố cục mẫu — gửi kèm để cán bộ tham khảo. File .tstn giúp cán bộ mở lại toàn bộ dữ liệu và góp ý trong ứng dụng Kê khai TSTN để sửa nhanh.</p></div>
+  ${blocks ? `<details class="card"><summary>Xem nội dung bản kê khai đã đọc được</summary><div class="paper" style="margin-top:12px">${K.blocksToHtml(blocks, 12)}</div></details>` : ''}
   <div class="foot">${esc(K.APP.copyright)}</div>`);
 }
 function dmInput(e) { const el = e.target; setPath(db.dauMoi, el.dataset.dm, el.type === 'checkbox' ? el.checked : el.value); dirty = true; clearTimeout(saveTimer); saveTimer = setTimeout(persist, 500); }
-function dmChange(e) { dmInput(e); if (/status$/.test(e.target.dataset.dm)) renderDauMoiSide(); }
+function dmChange(e) { dmInput(e); if (/status$/.test(e.target.dataset.dm)) renderDauMoiSide(); if (e.target.dataset.dmre !== undefined) { const y = window.scrollY; renderDauMoi(); window.scrollTo(0, y); } }
+function dmKetLuan(it) { return it.ketLuan || (it.mau === 'NĐ 130/2020/NĐ-CP' ? 'lai' : dmChosen(it).some(f => f.level === 'loi') ? 'sua' : 'dat'); }
 async function dmClick(e, el, act) {
-  const m = db.dauMoi.meta;
-  if (act === 'dmImport') {
-    const files = await pickFiles('.tstn,.json', true);
-    for (const f of files) { const r = await openTstnText(await readText(f), f.name); if (!r) continue; if (r.data.type === 'backup') { toast(f.name + ': là file sao lưu, mở bằng nút 📂 Mở file'); continue; } const it = await dmAddFromData(r.data, f.name); if (it) dmPw[it.id] = r.pw; }
-    renderDauMoiSide();
+  const m = db.dauMoi.meta; const it = el.dataset.id ? dmItem(el.dataset.id) : null; const y = window.scrollY;
+  if (act === 'dmImport') { const files = await pickFiles('.docx,.tstn,.json,.doc,.pdf', true); if (files.length) await dmIngest(files); }
+  if (act === 'dmBack') { ui.dmView = null; renderDauMoiSide(); renderDauMoi(); window.scrollTo(0, 0); }
+  if (act === 'dmOpen') return dmOpen(it);
+  if (act === 'dmSelAll') { it.findings.forEach(f => { it.sel[f.key] = f.level !== 'goi_y'; }); persist(); renderDauMoi(); window.scrollTo(0, y); }
+  if (act === 'dmManAdd') { it.manual = it.manual || []; it.manual.push({ id: K.uid(), sec: '', msg: '', fix: '' }); persist(); renderDauMoi(); window.scrollTo(0, y); }
+  if (act === 'dmManDel') { it.manual = it.manual.filter(x => x.id !== el.dataset.mid); persist(); renderDauMoi(); window.scrollTo(0, y); }
+  if (act === 'dmPrevAttach') return dmAttachPrev(it);
+  if (act === 'dmPhieu') {
+    const chon = dmChosen(it); const kl = dmKetLuan(it);
+    const b = K.buildReviewDoc(Object.assign({}, it, { chon, ketLuan: kl, hanNopLai: it.hanNopLai || m.hanNopLai }), { donVi: m.donVi, diaDanh: m.diaDanh, nam: m.nam, nguoiRaSoat: m.nguoiRaSoat, chucDanhRaSoat: m.chucDanhRaSoat });
+    await saveBlob(new Blob([K.buildDocx(b, { fontSize: 14, footer: '', title: 'Phiếu thẩm định sơ bộ bản kê khai — ' + (it.hoTen || '') })], { type: DOCX_MIME }), `PhieuThamDinh_${safeName(it.hoTen)}.docx`);
+    it.status = kl === 'dat' ? 'Đạt' : 'Cần bổ sung'; it.ngayThamDinh = K.todayISO(); persist(); renderDauMoiSide(); renderDauMoi(); window.scrollTo(0, y);
+    toast(kl === 'dat' ? 'Đã lập phiếu — hồ sơ chuyển trạng thái "Đạt"' : 'Đã lập phiếu đề nghị chỉnh sửa — hồ sơ chuyển "Cần bổ sung"');
   }
+  if (act === 'dmDeclDocx') { const d = dmDecl(it); await saveBlob(new Blob([K.buildDocx(K.buildDeclDoc(d, dmPrev(it), { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong }), exportOpts(d))], { type: DOCX_MIME }), `BanKeKhai_${safeName(it.hoTen)}_${d.nam}_chuan_hoa.docx`); }
+  if (act === 'dmReturn') return dmReturn(it);
   if (act === 'dmPaper') {
-    const r = await modal('Ghi nhận bản kê khai giấy/Word', `<div class="grid"><label class="f">Họ và tên<input type="text" id="a"></label><label class="f">Chức vụ<input type="text" id="b"></label>
-      <label class="f">Phương thức<select id="c">${Object.values(K.PHUONG_THUC_TEN).map(v => `<option ${v === 'Kê khai hằng năm' ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label class="f">Số bộ nhận<input type="number" id="d" value="${m.soBo}"></label>
-      <label class="f full">Ghi chú/góp ý khi kiểm tra<textarea id="e"></textarea></label></div>`,
-      [{ label: 'Huỷ', value: null }, { label: 'Ghi nhận', cls: 'pri', onClick: mm => ({ hoTen: $('#a', mm).value, chucVu: $('#b', mm).value, phuongThuc: $('#c', mm).value, soBo: $('#d', mm).value, gopY: $('#e', mm).value }) }], 'sm');
+    const r = await modal('Ghi nhận bản kê khai giấy', `<div class="grid"><label class="f">Họ và tên<input type="text" id="a"></label><label class="f">Chức vụ<input type="text" id="b"></label>
+      <label class="f">Phương thức<select id="c">${Object.values(K.PHUONG_THUC_TEN).map(v => `<option ${v === 'Kê khai hằng năm' ? 'selected' : ''}>${v}</option>`).join('')}</select></label><label class="f">Số bộ nhận<input type="number" id="d" value="${m.soBo}"></label></div>`,
+      [{ label: 'Huỷ', value: null }, { label: 'Ghi nhận', cls: 'pri', onClick: mm => ({ hoTen: $('#a', mm).value, chucVu: $('#b', mm).value, phuongThuc: $('#c', mm).value, soBo: $('#d', mm).value }) }], 'sm');
     if (!r || !r.hoTen) return;
-    db.dauMoi.items.push(Object.assign({ id: K.uid(), source: 'giay', ngayNhan: K.todayISO(), status: 'Đã nhận', findings: [] }, r)); persist(); renderDauMoiSide(); renderDauMoi();
+    db.dauMoi.items.push(Object.assign({ id: K.uid(), source: 'giay', ngayNhan: K.todayISO(), status: 'Đã nhận', findings: [], structure: [], sel: {}, fixEdit: {}, manual: [], gopY: '' }, r)); persist(); renderDauMoiSide(); renderDauMoi();
   }
   if (act === 'dmDel') { if (await confirmBox('Xoá', 'Xoá hồ sơ này khỏi danh sách tiếp nhận trên máy đầu mối?', 'Xoá', true)) { db.dauMoi.items = db.dauMoi.items.filter(x => x.id !== el.dataset.id); persist(); renderDauMoiSide(); renderDauMoi(); } }
   if (act === 'dmList' || act === 'dmTrack') {
-    const rows = db.dauMoi.items.map(it => ({ hoTen: it.hoTen, chucVu: it.chucVu, ghiChu: it.ghiChu || '', phuongThuc: it.phuongThuc, ngayNhan: K.fmtDate(it.ngayNhan), soBo: it.soBo, ketQua: it.status }));
-    const meta = { nam: m.nam, donVi: m.donVi, nguoiKy: m.nguoiKy, chucDanhKy: m.chucDanhKy, diaDanh: m.diaDanh };
+    const rows = db.dauMoi.items.map(x => ({ hoTen: x.hoTen, chucVu: x.chucVu, ghiChu: x.ghiChu || '', phuongThuc: x.phuongThuc, ngayNhan: K.fmtDate(x.ngayNhan), soBo: x.soBo, ketQua: x.status }));
+    const meta = { nam: m.nam, donVi: (m.donVi || '').split('\n').slice(-1)[0], nguoiKy: m.nguoiKy, chucDanhKy: m.chucDanhKy, diaDanh: m.diaDanh };
     const blocks = act === 'dmList' ? K.buildListDoc(rows, meta) : K.buildTrackDoc(rows, meta);
-    const bytes = K.buildDocx(blocks, { fontSize: 13, landscape: act === 'dmTrack', footer: '', title: act === 'dmList' ? 'Danh sách người có nghĩa vụ kê khai' : 'Sổ theo dõi giao nhận bản kê khai' });
-    saveBlob(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), (act === 'dmList' ? 'DanhSach_KeKhai_' : 'SoTheoDoi_KeKhai_') + m.nam + '.docx');
+    saveBlob(new Blob([K.buildDocx(blocks, { fontSize: 13, landscape: act === 'dmTrack', footer: '', title: act === 'dmList' ? 'Danh sách người có nghĩa vụ kê khai' : 'Sổ theo dõi giao nhận bản kê khai' })], { type: DOCX_MIME }), (act === 'dmList' ? 'DanhSach_KeKhai_' : 'SoTheoDoi_KeKhai_') + m.nam + '.docx');
   }
-  if (act === 'dmOpen') return dmOpen(dmItem(el.dataset.id));
 }
 async function dmOpen(it) {
-  if (it.source !== 'file') {
+  if (it.source === 'giay') {
     const r = await modal('Bản giấy: ' + esc(it.hoTen), `<label class="f">Góp ý/ghi chú khi kiểm tra<textarea id="g" rows="6">${esc(it.gopY || '')}</textarea></label><label class="f" style="margin-top:8px">Ghi chú in trong danh sách<input type="text" id="n" value="${esc(it.ghiChu || '')}"></label>`, [{ label: 'Đóng', value: null }, { label: 'Lưu', cls: 'pri', onClick: m => ({ g: $('#g', m).value, n: $('#n', m).value }) }], 'sm');
     if (r) { it.gopY = r.g; it.ghiChu = r.n; persist(); } return;
   }
-  dmRefresh(it); const d = dmDecl(it); const blocks = K.buildDeclDoc(d, dmPrev(it), { keKhaiDuoiNguong: db.settings.keKhaiDuoiNguong });
-  const f = it.findings; const e = f.filter(x => x.level === 'loi').length;
-  const r = await modal('Rà soát: ' + esc(it.hoTen), `
-    <div class="kpis"><div class="kpi"><span>Lỗi</span><b class="${e ? 'stat-err' : 'stat-ok'}">${e}</b></div><div class="kpi"><span>Cảnh báo</span><b>${f.filter(x => x.level === 'canh_bao').length}</b></div><div class="kpi"><span>Phương thức</span><b style="font-size:14px">${esc(it.phuongThuc)}</b></div><div class="kpi"><span>Ngày chốt</span><b style="font-size:14px">${esc(it.ngayChot)}</b></div></div>
-    <div class="card" style="padding:0;max-height:260px;overflow:auto">${findingsHtml(f).replace(/data-act="goto"/g, '')}</div>
-    <label class="f">Góp ý của người rà soát (sẽ gửi kèm khi lưu file trả lại)<textarea id="gy" rows="5">${esc(it.gopY || '')}</textarea></label>
-    <label class="f" style="margin-top:8px">Ghi chú in trong danh sách<input type="text" id="gc" value="${esc(it.ghiChu || '')}"></label>
-    <details style="margin-top:10px"><summary style="cursor:pointer">Xem nội dung bản kê khai</summary><div class="paper" style="margin-top:8px">${K.blocksToHtml(blocks, 12)}</div></details>`,
-    [{ label: 'Đóng', value: null },
-     { label: ic('download') + 'Phiếu góp ý', onClick: m => { it.gopY = $('#gy', m).value; const b = K.buildCommentDoc(it, { nguoiKy: db.dauMoi.meta.nguoiKy, chucDanhKy: 'Người rà soát', diaDanh: db.dauMoi.meta.diaDanh }); saveBlob(new Blob([K.buildDocx(b, { fontSize: 13 })], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), `PhieuGopY_${safeName(it.hoTen)}.docx`); return false; } },
-     { label: ic('download') + 'Bản kê khai', onClick: () => { saveBlob(new Blob([K.buildDocx(blocks, exportOpts(d))], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), `BanKeKhai_${safeName(it.hoTen)}_${d.nam}.docx`); return false; } },
-     { label: ic('lock') + 'Lưu file trả lại kèm góp ý', onClick: m => { it.gopY = $('#gy', m).value; it.ghiChu = $('#gc', m).value; dmReturn(it); return false; } },
-     { label: 'Lưu', cls: 'pri', onClick: m => ({ gy: $('#gy', m).value, gc: $('#gc', m).value }) }]);
-  if (r) { it.gopY = r.gy; it.ghiChu = r.gc; persist(); renderDauMoi(); }
+  ui.dmView = it.id; renderDauMoiSide(); renderDauMoi(); window.scrollTo(0, 0);
+}
+async function dmAttachPrev(it) {
+  const [f] = await pickFiles('.docx,.tstn,.json'); if (!f) return;
+  let prev = null;
+  try {
+    if (/\.docx$/i.test(f.name)) prev = K.normalizeDecl((await window.KKImport.importFile(f)).decl);
+    else { const r = await openTstnText(await readText(f), f.name); if (!r) return; const h = r.data.type === 'hoso' ? r.data.hoso : r.data; prev = K.normalizeDecl(h.decls[h.decls.length - 1]); }
+  } catch (e) { toast(e.message); return; }
+  const d = dmDecl(it);
+  prev.id = K.uid(); it.hoso.decls = [prev, d]; d.prevId = prev.id; dmMatchIds(d, prev);
+  if (!d.ngayKeKhaiTruoc) d.ngayKeKhaiTruoc = prev.ngayKeKhai || prev.ngayChot;
+  it.findings = null; dmRefresh(it); await persist(); renderDauMoi(); toast('Đã đính kèm bản năm ' + prev.nam + ' để đối chiếu');
 }
 async function dmReturn(it) {
-  if (!it.gopY.trim()) { toast('Chưa có nội dung góp ý'); return; }
-  const d = dmDecl(it);
-  d.review.comments = d.review.comments || []; d.review.comments.push({ at: new Date().toISOString(), by: (db.dauMoi.meta.nguoiKy || 'Đầu mối') + (db.dauMoi.meta.donVi ? ' — ' + db.dauMoi.meta.donVi : ''), text: it.gopY });
+  const d = dmDecl(it); const chon = dmChosen(it);
+  const text = [chon.length ? 'Đề nghị chỉnh sửa, bổ sung:' : 'Bản kê khai đạt yêu cầu.', ...chon.map((f, i) => `${i + 1}. [${f.sec.replace(/^Thể thức — /, '')}] ${f.msg} → ${f.fix}`), it.gopY ? 'Ý kiến khác: ' + it.gopY : '', (it.hanNopLai || db.dauMoi.meta.hanNopLai) ? 'Hạn nộp lại: ' + K.fmtDate(it.hanNopLai || db.dauMoi.meta.hanNopLai) : ''].filter(Boolean).join('\n');
+  d.review.comments = d.review.comments || []; d.review.comments.push({ at: new Date().toISOString(), by: (db.dauMoi.meta.nguoiRaSoat || db.dauMoi.meta.nguoiKy || 'Đầu mối') + (db.dauMoi.meta.donVi ? ' — ' + db.dauMoi.meta.donVi.split('\n').slice(-1)[0] : ''), text });
   let pw = dmPw[it.id];
-  if (pw === undefined) pw = await askPassword('Mật khẩu file trả lại', 'Nhập mật khẩu để mã hoá file trả lại (nên dùng đúng mật khẩu người kê khai đã đặt).', false);
+  if (pw === undefined) pw = await askPassword('Mật khẩu file trả lại', 'Đặt mật khẩu để mã hoá file trả lại cho cán bộ; báo mật khẩu qua kênh riêng. Để trống nếu không mã hoá.', false);
   if (pw === null) return;
-  const text = await K.encryptJSON({ type: 'hoso', sentDeclId: d.id, sentAt: new Date().toISOString(), hoso: it.hoso }, pw);
-  await saveBlob(new Blob([text], { type: 'application/json' }), `KeKhai_${safeName(it.hoTen)}_${d.nam}_gopy.tstn`);
-  it.status = 'Cần bổ sung'; persist(); renderDauMoiSide();
+  const out = await K.encryptJSON({ type: 'hoso', sentDeclId: d.id, sentAt: new Date().toISOString(), hoso: it.hoso }, pw);
+  await saveBlob(new Blob([out], { type: 'application/json' }), `KeKhai_${safeName(it.hoTen)}_${d.nam}_gopy.tstn`);
+  if (it.status === 'Đã nhận') it.status = chon.some(f => f.level === 'loi') ? 'Cần bổ sung' : 'Đạt';
+  persist(); renderDauMoiSide();
 }
+// Kéo thả file vào trang đầu mối
+document.addEventListener('dragover', e => { if (ui.mode === 'daumoi') { e.preventDefault(); const z = $('#dropZone'); if (z) z.style.borderColor = 'var(--seal)'; } });
+document.addEventListener('dragleave', () => { const z = $('#dropZone'); if (z) z.style.borderColor = ''; });
+document.addEventListener('drop', e => { if (ui.mode !== 'daumoi') return; e.preventDefault(); const files = [...(e.dataTransfer?.files || [])]; if (files.length) dmIngest(files); });
 
 // ------------------------------------------------------------------ UPDATE CHECK
 async function checkUpdate() {

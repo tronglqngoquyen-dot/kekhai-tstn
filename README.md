@@ -4,7 +4,7 @@
 
 - 🌐 Dùng ngay / cài đặt: https://tronglqngoquyen-dot.github.io/kekhai-tstn/
 - ⬇ Bản 1 file chạy không cần mạng: https://tronglqngoquyen-dot.github.io/kekhai-tstn/KeKhaiTSTN.html
-- Phiên bản: 1.1.0
+- Phiên bản: 1.3.0
 
 ## Tính năng
 - Đủ 4 phương thức: lần đầu, hằng năm, bổ sung, phục vụ công tác cán bộ (dùng chung 1 mẫu).
