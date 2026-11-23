@@ -248,6 +248,37 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
   @page{size:A4;margin:2cm 2cm 2cm 3cm}
 }
 #printArea{display:none}
+/* ---- cài đặt ứng dụng */
+.tb.inst{background:var(--brass);color:#1B1406;font-weight:600;border-color:#D4AF5A;margin-right:6px}
+.tb.inst:hover{background:#C9A24A;color:#1B1406;border-color:#E2C27A}
+.instcard{margin-top:22px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;background:var(--paper);border:1px solid #E2CF9F;border-left:5px solid var(--brass);border-radius:var(--r);padding:16px 18px;box-shadow:0 6px 18px rgba(22,35,63,.07);max-width:760px}
+.instcard .ii{width:48px;height:48px;border-radius:12px;background:var(--brass-soft);display:grid;place-items:center;color:#7A5A12}
+.instcard .ii svg.i{width:26px;height:26px}
+.instcard .it b{display:block;font-size:16px;color:var(--ink)}
+.instcard .it span{display:block;font-size:13.2px;color:var(--mute);margin-top:2px}
+.instcard .ib{display:flex;flex-direction:column;align-items:center;gap:6px}
+.instcard .ib a{font-size:12.8px;cursor:pointer}
+.btn.big{padding:11px 18px;font-size:15px}
+@media (max-width:720px){.instcard{grid-template-columns:auto 1fr}.instcard .ib{grid-column:1/-1;flex-direction:row;justify-content:space-between}.tb.inst span{display:none}}
+.modal.lg .box{max-width:1000px}
+.gtabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 14px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.gtabs button{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13.5px}
+.gtabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.gsteps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.gsteps li{border:1px solid var(--line-2);border-radius:var(--r);overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.gfig{background:#F4F6F9;border-bottom:1px solid var(--line-2);padding:10px}
+.gfig svg{display:block;width:100%;height:auto;font-family:var(--f)}
+.gtx{padding:12px 14px 14px}
+.gtx .gn{display:inline-block;font-size:11.5px;font-weight:600;color:var(--seal);background:var(--seal-soft);border-radius:4px;padding:1px 7px;margin-bottom:6px}
+.gtx b{display:block;color:var(--ink);font-size:14.2px;line-height:1.4}
+.gtx p{margin:5px 0 0;font-size:13px;color:var(--mute)}
+.gnote{display:flex;gap:8px;align-items:flex-start;margin-top:14px}
+@media (max-width:820px){.gsteps{grid-template-columns:1fr}.gfig svg{max-width:340px;margin:0 auto}}
+.banner.moved{background:var(--info-soft);border-color:#C7D8F0;color:#173A6B}
+.banner.moved span{flex:1}
+@media print{.instcard,.tb.inst{display:none!important}}
+.gfig svg.ph{max-height:200px;width:auto;margin:0 auto}
+.gfig{display:flex;align-items:center;justify-content:center;min-height:190px}
 
 </style>
 </head>
@@ -267,14 +298,15 @@ details summary{cursor:pointer;color:var(--ink-3);font-weight:500}
 
 const APP = {
   name: 'Kê khai TSTN',
-  version: '1.3.0',
+  version: '1.3.1',
   build: '2026-11-23',
   author: 'Lê Quang Trọng',
   place: 'đảo Phú Quý',
   phone: '0909084181',
   email: 'lequangtrong.c3ngoquyen@moet.edu.vn',
   updateUrl: 'https://tronglqngoquyen-dot.github.io/kekhai-tstn/version.json', // sửa theo tài khoản GitHub thực tế
-  homeUrl: 'https://tronglqngoquyen-dot.github.io/kekhai-tstn/',
+  movedTo: 'https://kekhaitaisan.github.io/', oldOrigins: [],
+  homeUrl: 'https://kekhaitaisan.github.io/',
   legal: 'Mẫu theo Phụ lục Nghị định số 164/2026/NĐ-CP ngày 15/5/2026 của Chính phủ'
 };
 APP.copyright = `© ${new Date().getFullYear() < 2026 ? 2026 : new Date().getFullYear()} ${APP.author}, ${APP.place} · ${APP.phone} · ${APP.email}`;
@@ -1801,6 +1833,9 @@ const DB_KEY = 'KKTSTN_DB_V1', DB_ENC_KEY = 'KKTSTN_DB_V1_ENC';
 
 // ------------------------------------------------------------------ ICONS (nét vẽ tối giản)
 const ICONS = {
+  install: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/><path d="M12 7v5M9.5 9.5L12 12l2.5-2.5"/>',
+  monitor: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/>',
+  phone: '<rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/>',
   save: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3"/><path d="M8 21v-7h8v7"/>',
   folder: '<path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
@@ -2191,6 +2226,7 @@ function renderShell() {
   <header class="top"><div class="brand"><div class="seal"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9.5 13l2 2 3.5-4"/></svg></div><div><b>${esc(K.APP.name)}</b><small>Mẫu Nghị định 164/2026/NĐ-CP · bản ${K.APP.version}</small></div></div>
     <div class="seg" role="tablist"><button data-mode="kekhai" class="${ui.mode === 'kekhai' ? 'on' : ''}">${ic('user')}Người kê khai</button><button data-mode="daumoi" class="${ui.mode === 'daumoi' ? 'on' : ''}">${ic('building')}Đầu mối đơn vị</button></div>
     <div class="sp"></div><span class="saved" id="saved"></span>
+    <button class="tb inst" data-act="install" id="instTop" title="Cài ứng dụng vào máy tính, điện thoại">${ic('install')}<span>Cài đặt ứng dụng</span></button>
     <button class="tb" data-act="importOld" title="Nhận diện bản kê khai năm trước từ file Word">${ic('word')}<span>Nhập bản cũ</span></button>
     <button class="tb" data-act="openFile" title="Mở file dữ liệu .tstn/.json">${ic('folder')}<span>Mở</span></button>
     <button class="tb" data-act="saveAll" title="Sao lưu toàn bộ dữ liệu ra file">${ic('save')}<span>Sao lưu</span></button>
@@ -2260,6 +2296,7 @@ function welcome() {
       <button class="start" data-act="openFile"><span class="ic">${ic('folder')}</span><span><b>Mở file dữ liệu đã lưu</b><small>File .tstn sao lưu năm trước, hoặc file đầu mối gửi trả kèm góp ý</small></span><span class="go">${ic('chev')}</span></button>
     </div>
     <div class="minor"><a data-act="newHS" data-ho="1">${ic('users')}Kê khai hộ nhiều người</a><a data-act="mode" data-mode="daumoi">${ic('building')}Tôi là đầu mối đơn vị</a><a data-act="pasteOld">${ic('paste')}Dán nội dung từ PDF</a></div>
+    ${installCard()}
     <p class="privacy">${ic('lock')}<span>Dữ liệu chỉ lưu trên máy tính này và trong các file bạn tự lưu. Ứng dụng không có máy chủ và không gửi dữ liệu đi đâu.</span></p>
   </div>
   <div class="sheet-art" aria-hidden="true"><div class="hd"><span>SỞ GIÁO DỤC VÀ ĐÀO TẠO<br>TRƯỜNG THPT ……<div class="u" style="width:34%"></div></span><span>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc<div class="u"></div></span></div>
@@ -2330,6 +2367,9 @@ async function onClick(e) {
     case 'sendFile': return sendFileFlow();
     case 'json': { const blob = new Blob([JSON.stringify(K.exportStructured(curHoSo(), d, curPrev()), null, 2)], { type: 'application/json' }); saveBlob(blob, `KeKhai_${safeName(d.nguoi.hoTen)}_${d.nam}.json`); break; }
     case 'saveAll': return backupAll();
+    case 'install': return installApp();
+    case 'instGuide': return installGuide();
+    case 'moveData': return moveDataOut();
     case 'openFile': return openFileFlow();
     case 'importOld': return importOldFlow();
     case 'pasteOld': return pasteOldFlow();
@@ -2405,6 +2445,15 @@ async function backupAll() {
   const ok = await saveBlob(new Blob([text], { type: 'application/json' }), `SaoLuu_KeKhaiTSTN_${K.todayISO()}.tstn`, 'backup');
   if (ok) { db.settings.lastBackup = new Date().toISOString(); persist(); toast('Đã sao lưu'); }
 }
+async function mergeDB(src) {
+  const empty = !db.hoso.length && !db.dauMoi.items.length;
+  if (empty && src.dauMoi && src.dauMoi.meta) db.dauMoi.meta = Object.assign({}, db.dauMoi.meta, src.dauMoi.meta);
+  if (empty && src.settings) db.settings = Object.assign({}, db.settings, src.settings, { lastBackup: db.settings.lastBackup });
+  (src.hoso || []).forEach(h => { db.hoso = db.hoso.filter(x => x.id !== h.id); db.hoso.push(h); });
+  if (src.dauMoi && src.dauMoi.items) src.dauMoi.items.forEach(it => { db.dauMoi.items = db.dauMoi.items.filter(x => x.id !== it.id); db.dauMoi.items.push(it); });
+  fixDB(); if (!curDecl() && db.hoso.length) db.cur = { hosoId: db.hoso[0].id, declId: db.hoso[0].decls.slice(-1)[0]?.id };
+  await persist(); renderShell();
+}
 async function openFileFlow() {
   const [f] = await pickFiles('.tstn,.json,.docx'); if (!f) return;
   if (/\.docx$/i.test(f.name)) return importOldFlow(f);
@@ -2413,10 +2462,7 @@ async function openFileFlow() {
   if (data.type === 'backup') {
     const ok = await confirmBox('Khôi phục bản sao lưu', `File sao lưu ngày ${new Date(data.at).toLocaleString('vi-VN')} có ${data.db.hoso.length} hồ sơ. <b>Gộp</b> vào dữ liệu hiện có (hồ sơ trùng sẽ được thay bằng bản trong file)?`, 'Gộp dữ liệu');
     if (!ok) return;
-    data.db.hoso.forEach(h => { db.hoso = db.hoso.filter(x => x.id !== h.id); db.hoso.push(h); });
-    if (data.db.dauMoi && data.db.dauMoi.items) data.db.dauMoi.items.forEach(it => { db.dauMoi.items = db.dauMoi.items.filter(x => x.id !== it.id); db.dauMoi.items.push(it); });
-    fixDB(); if (!curDecl() && db.hoso.length) db.cur = { hosoId: db.hoso[0].id, declId: db.hoso[0].decls.slice(-1)[0].id };
-    await persist(); renderShell(); toast('Đã khôi phục'); return;
+    await mergeDB(data.db); toast('Đã khôi phục'); return;
   }
   const hoso = data.type === 'hoso' ? data.hoso : (data.decls ? data : null);
   if (!hoso) { toast('File không chứa hồ sơ kê khai'); return; }
@@ -2746,6 +2792,122 @@ async function checkUpdate() {
   } catch { /* offline */ }
 }
 
+
+// ------------------------------------------------------------------ CÀI ĐẶT ỨNG DỤNG (PWA)
+let instPrompt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: window-controls-overlay)').matches || navigator.standalone === true;
+const platform = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(navigator.userAgent) ? 'android' : 'pc';
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); instPrompt = e; refreshInstallUI(); });
+window.addEventListener('appinstalled', () => { instPrompt = null; refreshInstallUI(); toast('Đã cài ứng dụng — mở từ biểu tượng "Kê khai TSTN" trên màn hình'); });
+function refreshInstallUI() {
+  const hide = isStandalone() || !!K.APP.movedTo;
+  document.querySelectorAll('#instTop,.instcard').forEach(n => { n.style.display = hide ? 'none' : ''; });
+}
+function installCard() {
+  if (isStandalone() || K.APP.movedTo) return '';
+  return `<div class="instcard"><div class="ii">${ic('install')}</div><div class="it"><b>Cài đặt ứng dụng vào máy</b><span>Có biểu tượng trên màn hình như một phần mềm, mở trong cửa sổ riêng, dùng được khi mất mạng và tự cập nhật. Dữ liệu dùng chung với trang này.</span></div>
+    <div class="ib"><button class="btn pri big" data-act="install">${ic('install')}Cài đặt ngay</button><a data-act="instGuide">Xem hướng dẫn có hình</a></div></div>`;
+}
+async function installApp() {
+  if (isStandalone()) { toast('Bạn đang dùng bản đã cài đặt'); return; }
+  if (instPrompt) {
+    instPrompt.prompt(); const r = await instPrompt.userChoice.catch(() => ({})); instPrompt = null;
+    if (r.outcome === 'accepted') return; refreshInstallUI(); return;
+  }
+  return installGuide();
+}
+const FIG = {
+  icon: (x, y, s = 28) => `<g transform="translate(${x},${y}) scale(${s / 512})"><rect width="512" height="512" rx="96" fill="#9b1c1c"/><rect x="120" y="96" width="272" height="320" rx="24" fill="#fff"/><rect x="160" y="150" width="192" height="22" rx="11" fill="#9b1c1c"/><rect x="160" y="210" width="150" height="18" rx="9" fill="#c9a3a3"/><rect x="160" y="252" width="170" height="18" rx="9" fill="#c9a3a3"/><circle cx="330" cy="350" r="56" fill="#1e7d4f"/></g>`,
+  ring: (x, y, r = 15) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#A8201A" stroke-width="3"/><circle cx="${x}" cy="${y}" r="${r + 6}" fill="none" stroke="#A8201A" stroke-opacity=".25" stroke-width="5"/>`,
+  box: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="none" stroke="#A8201A" stroke-width="2.2"/><rect x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="7" fill="none" stroke="#A8201A" stroke-opacity=".22" stroke-width="4"/>`,
+  hand: (x, y) => `<path d="M${x} ${y}l-7 22 6-3 5 10 5-2-5-10 7-1z" fill="#16233F" stroke="#fff" stroke-width="1.5"/>`,
+  win: (inner, url = true) => `<rect x="6" y="6" width="288" height="164" rx="10" fill="#fff" stroke="#C9D1DC"/><rect x="6" y="6" width="288" height="26" rx="10" fill="#E9EDF2"/><rect x="6" y="22" width="288" height="10" fill="#E9EDF2"/><circle cx="20" cy="19" r="4" fill="#E06C5F"/><circle cx="32" cy="19" r="4" fill="#E8B64C"/><circle cx="44" cy="19" r="4" fill="#5DBB63"/>${url ? `<rect x="58" y="11" width="200" height="16" rx="8" fill="#fff" stroke="#C9D1DC"/><text x="68" y="23" font-size="9.5" fill="#4A5568">kekhaitaisan.github.io</text>` : ''}${inner}`,
+  phone: inner => `<rect x="95" y="2" width="110" height="172" rx="16" fill="#16233F"/><rect x="101" y="12" width="98" height="152" rx="8" fill="#fff"/>${inner}`,
+  txt: (x, y, t, o = '') => `<text x="${x}" y="${y}" font-size="10" fill="#16233F" ${o}>${t}</text>`
+};
+function figSvg(body, phone) { return `<svg viewBox="${phone ? '72 0 156 176' : '0 0 300 176'}" class="${phone ? 'ph' : ''}" role="img" aria-hidden="true">${body}</svg>`; }
+const GUIDE = {
+  pc: { name: 'Máy tính (Chrome, Edge)', icon: 'monitor', steps: [
+    ['Bấm biểu tượng cài đặt ở cuối thanh địa chỉ', 'Mở trang bằng Chrome hoặc Microsoft Edge. Ở đầu bên phải thanh địa chỉ có biểu tượng màn hình kèm mũi tên (Edge: ô vuông có dấu cộng).',
+      figSvg(FIG.win(`<g transform="translate(244,11)"><rect x="0" y="1" width="12" height="9" rx="1.5" fill="none" stroke="#16233F" stroke-width="1.4"/><path d="M6 3v5M4 6l2 2 2-2" stroke="#16233F" stroke-width="1.4" fill="none"/></g>${FIG.ring(250, 19, 11)}${FIG.hand(256, 30)}<rect x="22" y="48" width="120" height="10" rx="5" fill="#16233F"/><rect x="22" y="66" width="250" height="7" rx="3.5" fill="#DDE3EA"/><rect x="22" y="80" width="220" height="7" rx="3.5" fill="#DDE3EA"/><rect x="22" y="100" width="110" height="52" rx="8" fill="#F6E9E8"/><rect x="146" y="100" width="126" height="52" rx="8" fill="#F1F3F6"/>`))],
+    ['Chọn "Cài đặt" trong hộp thoại', 'Trình duyệt hỏi có cài "Kê khai TSTN" không. Bấm Cài đặt. Hoặc bấm nút "Cài đặt ngay" ngay trên trang chủ của ứng dụng.',
+      figSvg(FIG.win(`<rect x="0" y="32" width="300" height="140" fill="#16233F" fill-opacity=".08"/><rect x="128" y="36" width="160" height="96" rx="8" fill="#fff" stroke="#C9D1DC"/>${FIG.txt(140, 56, 'Cài đặt ứng dụng?', 'font-weight="700"')}${FIG.icon(140, 66, 24)}${FIG.txt(172, 76, 'Kê khai TSTN')}${FIG.txt(172, 88, 'kekhaitaisan.github.io', 'font-size="8" fill="#6B7380"')}<rect x="230" y="104" width="48" height="18" rx="5" fill="#A8201A"/>${FIG.txt(239, 116, 'Cài đặt', 'fill="#fff" font-size="9"')}<rect x="186" y="104" width="38" height="18" rx="5" fill="#fff" stroke="#C9D1DC"/>${FIG.txt(196, 116, 'Huỷ', 'font-size="9"')}${FIG.box(226, 101, 56, 24)}`))],
+    ['Mở ứng dụng từ biểu tượng trên màn hình', 'Biểu tượng "Kê khai TSTN" xuất hiện trên màn hình nền và trong menu Start. Từ nay mở như một phần mềm, kể cả khi không có mạng.',
+      figSvg(`<rect x="6" y="6" width="288" height="164" rx="10" fill="#2B4A7A"/><rect x="6" y="150" width="288" height="20" fill="#1D3456"/><rect x="6" y="160" width="288" height="10" rx="0" fill="#1D3456"/><rect x="138" y="153" width="14" height="14" rx="3" fill="#fff" fill-opacity=".8"/>${FIG.icon(24, 22, 40)}<text x="44" y="76" text-anchor="middle" font-size="9" fill="#fff">Kê khai TSTN</text>${FIG.ring(44, 42, 26)}<rect x="110" y="26" width="168" height="112" rx="8" fill="#fff"/><rect x="110" y="26" width="168" height="18" rx="8" fill="#16233F"/><rect x="110" y="36" width="168" height="8" fill="#16233F"/>${FIG.icon(116, 29, 12)}<text x="132" y="39" font-size="8" fill="#fff">Kê khai TSTN</text><rect x="122" y="56" width="70" height="8" rx="4" fill="#16233F"/><rect x="122" y="72" width="140" height="6" rx="3" fill="#DDE3EA"/><rect x="122" y="84" width="120" height="6" rx="3" fill="#DDE3EA"/><rect x="122" y="100" width="60" height="26" rx="5" fill="#F6E9E8"/>`)]],
+    note: 'Không thấy biểu tượng? Mở menu ⋮ (Chrome) hoặc ⋯ (Edge), tìm mục "Truyền, lưu và chia sẻ → Cài đặt trang" (Chrome) hoặc "Ứng dụng → Cài đặt trang web này dưới dạng ứng dụng" (Edge). Firefox chưa hỗ trợ cài đặt.' },
+  android: { name: 'Điện thoại Android', icon: 'phone', steps: [
+    ['Mở trang bằng Chrome, bấm nút ⋮', 'Nút ba chấm ở góc trên bên phải của Chrome.',
+      figSvg(FIG.phone(`<rect x="101" y="12" width="98" height="20" fill="#F1F3F6"/><rect x="106" y="17" width="72" height="10" rx="5" fill="#fff" stroke="#C9D1DC"/><text x="110" y="25" font-size="6.5" fill="#4A5568">kekhaitaisan.github.io</text><g fill="#16233F"><circle cx="189" cy="18" r="1.4"/><circle cx="189" cy="22" r="1.4"/><circle cx="189" cy="26" r="1.4"/></g>${FIG.ring(189, 22, 8)}<rect x="108" y="42" width="60" height="7" rx="3.5" fill="#16233F"/><rect x="108" y="56" width="84" height="5" rx="2.5" fill="#DDE3EA"/><rect x="108" y="66" width="74" height="5" rx="2.5" fill="#DDE3EA"/><rect x="108" y="80" width="84" height="34" rx="6" fill="#F6E9E8"/>`) + FIG.hand(196, 30), 1)],
+    ['Chọn "Cài đặt ứng dụng" (hoặc "Thêm vào màn hình chính")', 'Tên mục có thể khác chút tuỳ phiên bản Chrome. Bấm Cài đặt để xác nhận.',
+      figSvg(FIG.phone(`<rect x="101" y="12" width="98" height="152" fill="#16233F" fill-opacity=".08"/><rect x="128" y="16" width="68" height="104" rx="5" fill="#fff" stroke="#C9D1DC"/>${['Thẻ mới', 'Dấu trang', 'Lịch sử', 'Tải xuống'].map((t, i) => `<text x="134" y="${31 + i * 14}" font-size="7" fill="#4A5568">${t}</text>`).join('')}<rect x="130" y="85" width="64" height="15" rx="3" fill="#F6E9E8"/><text x="134" y="95" font-size="7" font-weight="700" fill="#A8201A">Cài đặt ứng dụng</text><text x="134" y="112" font-size="7" fill="#4A5568">Cài đặt</text>`) + FIG.box(128, 83, 68, 19), 1)],
+    ['Mở từ biểu tượng trên màn hình chính', 'Biểu tượng "Kê khai TSTN" nằm cùng các ứng dụng khác.',
+      figSvg(FIG.phone(`<rect x="101" y="12" width="98" height="152" fill="#2B4A7A"/>${[0, 1, 2].map(c => [0, 1].map(r => `<rect x="${110 + c * 30}" y="${24 + r * 36}" width="20" height="20" rx="5" fill="#fff" fill-opacity=".35"/>`).join('')).join('')}${FIG.icon(110, 96, 20)}<text x="120" y="126" text-anchor="middle" font-size="5.5" fill="#fff">Kê khai TSTN</text>`) + FIG.ring(120, 106, 14), 1)]],
+    note: 'Trên điện thoại Samsung dùng Samsung Internet: bấm ☰ → "Thêm trang vào" → "Màn hình chính".' },
+  ios: { name: 'iPhone, iPad', icon: 'phone', steps: [
+    ['Mở trang bằng Safari, bấm nút Chia sẻ', 'Nút hình ô vuông có mũi tên lên, ở thanh dưới cùng (iPad: góc trên bên phải).',
+      figSvg(FIG.phone(`<rect x="108" y="20" width="84" height="7" rx="3.5" fill="#16233F"/><rect x="108" y="34" width="84" height="5" rx="2.5" fill="#DDE3EA"/><rect x="108" y="44" width="70" height="5" rx="2.5" fill="#DDE3EA"/><rect x="108" y="58" width="84" height="40" rx="6" fill="#F6E9E8"/><rect x="101" y="140" width="98" height="24" fill="#F1F3F6"/><rect x="108" y="126" width="84" height="11" rx="5.5" fill="#fff" stroke="#C9D1DC"/><text x="122" y="134" font-size="6" fill="#4A5568">kekhaitaisan.github.io</text><g transform="translate(144,144)" stroke="#2F6FDB" stroke-width="1.4" fill="none"><rect x="0" y="5" width="12" height="11" rx="2"/><path d="M6 0v10M3 3l3-3 3 3"/></g>`) + FIG.ring(150, 152, 11), 1)],
+    ['Chọn "Thêm vào MH chính"', 'Kéo danh sách lên nếu chưa thấy mục này.',
+      figSvg(FIG.phone(`<rect x="101" y="12" width="98" height="152" fill="#16233F" fill-opacity=".1"/><rect x="101" y="70" width="98" height="94" rx="8" fill="#fff"/>${['Sao chép', 'Thêm dấu trang', 'Thêm vào MH chính', 'In'].map((t, i) => `<text x="110" y="${88 + i * 18}" font-size="7" ${i === 2 ? 'font-weight="700" fill="#A8201A"' : 'fill="#4A5568"'}>${t}</text><line x1="108" x2="192" y1="${93 + i * 18}" y2="${93 + i * 18}" stroke="#EEF0F3"/>`).join('')}`) + FIG.box(104, 110, 92, 16), 1)],
+    ['Bấm "Thêm" ở góc trên bên phải', 'Biểu tượng "Kê khai TSTN" xuất hiện trên màn hình chính. Mở từ biểu tượng này để dùng như ứng dụng.',
+      figSvg(FIG.phone(`<rect x="101" y="12" width="98" height="20" fill="#F1F3F6"/><text x="106" y="25" font-size="7" fill="#2F6FDB">Huỷ</text><text x="126" y="25" font-size="6.5" font-weight="700" fill="#16233F">Thêm vào MH</text><text x="178" y="25" font-size="6.5" font-weight="700" fill="#2F6FDB">Thêm</text>${FIG.icon(108, 42, 26)}<text x="140" y="54" font-size="7" fill="#16233F">Kê khai TSTN</text><text x="140" y="64" font-size="5.5" fill="#6B7380">kekhaitaisan.github.io</text>`) + FIG.box(175, 15, 22, 13), 1)]],
+    note: 'Trên iPhone phải dùng Safari (Chrome trên iPhone bản mới cũng có mục "Thêm vào MH chính" trong nút Chia sẻ).' }
+};
+async function installGuide(tab) {
+  tab = tab || platform();
+  const offline = !location.protocol.startsWith('http');
+  const body = () => {
+    const g = GUIDE[tab];
+    return `${offline ? `<div class="note warn">Bạn đang mở bản file HTML trên máy. File này không cài được như ứng dụng. Để cài đặt, hãy mở trang <a href="${esc(K.APP.homeUrl)}" target="_blank" rel="noopener"><b>${esc(K.APP.homeUrl.replace(/^https:\/\//, '').replace(/\/$/, ''))}</b></a> bằng Chrome hoặc Edge rồi làm theo các bước dưới đây. Dữ liệu trong file HTML mang sang được bằng nút Sao lưu → Mở.</div>` : ''}
+    <div class="gtabs">${Object.entries(GUIDE).map(([k, v]) => `<button class="${k === tab ? 'on' : ''}" data-gt="${k}">${ic(v.icon)}${v.name}</button>`).join('')}</div>
+    <ol class="gsteps">${g.steps.map(([t, d, f], i) => `<li><div class="gfig">${f}</div><div class="gtx"><span class="gn">Bước ${i + 1}</span><b>${t}</b><p>${d}</p></div></li>`).join('')}</ol>
+    <p class="small mut gnote">${ic('info')}<span>${g.note}</span></p>`;
+  };
+  const btns = [{ label: 'Đóng', value: null }];
+  if (instPrompt) btns.push({ label: ic('install') + 'Cài đặt ngay', cls: 'pri', value: 'go' });
+  else if (offline) btns.push({ label: 'Mở trang cài đặt', cls: 'pri', value: 'open' });
+  const p = modal('Cài đặt ứng dụng vào máy', `<div id="gbody">${body()}</div>`, btns, 'lg guide');
+  const m = document.querySelector('.modal.guide:last-of-type');
+  if (m) m.addEventListener('click', e => { const b = e.target.closest('[data-gt]'); if (b) { tab = b.dataset.gt; $('#gbody', m).innerHTML = body(); } });
+  const r = await p;
+  if (r === 'go') installApp();
+  if (r === 'open') window.open(K.APP.homeUrl, '_blank', 'noopener');
+}
+
+// ------------------------------------------------------------------ CHUYỂN ĐỊA CHỈ
+// Trang ở địa chỉ cũ gửi dữ liệu sang địa chỉ mới qua postMessage (kiểm tra nguồn gốc hai chiều).
+const ORIGIN_OF = u => { try { return new URL(u).origin; } catch { return ''; } };
+function movedBanner() {
+  if (!K.APP.movedTo) return;
+  const host = K.APP.movedTo.replace(/^https:\/\//, '').replace(/\/$/, '');
+  $('#updBanner').innerHTML = `<div class="banner moved">${ic('info')}<span>Ứng dụng đã chuyển sang địa chỉ mới <b>${esc(host)}</b>. ${db.hoso.length || db.dauMoi.items.length ? 'Bấm nút bên cạnh để mang toàn bộ dữ liệu trên máy này sang địa chỉ mới.' : ''}</span>
+    ${db.hoso.length || db.dauMoi.items.length ? `<button class="btn sm pri" data-act="moveData">Chuyển dữ liệu sang địa chỉ mới</button>` : `<a class="btn sm pri" href="${esc(K.APP.movedTo)}">Mở địa chỉ mới</a>`}</div>`;
+}
+function moveDataOut() {
+  const target = ORIGIN_OF(K.APP.movedTo);
+  const w = window.open(K.APP.movedTo + '#nhan-du-lieu', '_blank');
+  if (!w) { toast('Trình duyệt chặn cửa sổ mới — hãy cho phép cửa sổ bật lên rồi bấm lại'); return; }
+  const onMsg = e => {
+    if (e.origin !== target || e.source !== w || !e.data || e.data.kk !== 'ready') return;
+    w.postMessage({ kk: 'db', db: JSON.parse(JSON.stringify(db)) }, target);
+  };
+  const onDone = e => { if (e.origin === target && e.source === w && e.data && e.data.kk === 'done') { toast('Đã chuyển dữ liệu. Từ nay hãy dùng địa chỉ mới.'); window.removeEventListener('message', onMsg); window.removeEventListener('message', onDone); } };
+  window.addEventListener('message', onMsg); window.addEventListener('message', onDone);
+}
+function receiveDataIn() {
+  if (location.hash !== '#nhan-du-lieu' || !window.opener || !K.APP.oldOrigins) return;
+  const allowed = K.APP.oldOrigins;
+  history.replaceState(null, '', location.pathname);
+  window.addEventListener('message', async e => {
+    if (!allowed.includes(e.origin) || e.source !== window.opener || !e.data || e.data.kk !== 'db') return;
+    const src = e.data.db || {}; const n = (src.hoso || []).length, m = ((src.dauMoi || {}).items || []).length;
+    const ok = await confirmBox('Nhận dữ liệu từ địa chỉ cũ', `Nhận <b>${n}</b> hồ sơ kê khai${m ? ` và <b>${m}</b> hồ sơ đầu mối` : ''} từ địa chỉ cũ của ứng dụng? Hồ sơ trùng sẽ được thay bằng bản chuyển sang.`, 'Nhận dữ liệu');
+    if (!ok) return;
+    await mergeDB(src); toast(`Đã nhận ${n} hồ sơ từ địa chỉ cũ`);
+    try { e.source.postMessage({ kk: 'done' }, e.origin); } catch { /* bỏ qua */ }
+  });
+  allowed.forEach(o => { try { window.opener.postMessage({ kk: 'ready' }, o); } catch { /* bỏ qua */ } });
+}
+
 // ------------------------------------------------------------------ BOOT
 async function boot() {
   const st = loadDB();
@@ -2762,7 +2924,8 @@ function start() {
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if (!K.cryptoOK()) setTimeout(() => toast('Trình duyệt không hỗ trợ mã hoá — nên dùng Chrome/Edge bản mới'), 1000);
   renderShell(); setSaved(db.hoso.length ? 'Dữ liệu đã lưu trên máy' : ''); checkBackupReminder();
-  setTimeout(checkUpdate, 2500);
+  refreshInstallUI(); movedBanner(); receiveDataIn();
+  if (!K.APP.movedTo) setTimeout(checkUpdate, 2500);
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 window.KKUI = { get db() { return db; }, render, persist };

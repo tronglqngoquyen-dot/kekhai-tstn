@@ -1,6 +1,6 @@
 {
-  "version": "1.3.0",
+  "version": "1.3.1",
   "build": "2026-11-23",
-  "notes": "Đầu mối: tiếp nhận file Word/.tstn (kéo thả nhiều file), thẩm định sơ bộ thể thức và nội dung, đề nghị chỉnh sửa, xuất Phiếu thẩm định.",
-  "download": "https://tronglqngoquyen-dot.github.io/kekhai-tstn/KeKhaiTSTN.html"
+  "notes": "Ứng dụng đã chuyển sang địa chỉ mới kekhaitaisan.github.io.",
+  "download": "https://kekhaitaisan.github.io/KeKhaiTSTN.html"
 }
